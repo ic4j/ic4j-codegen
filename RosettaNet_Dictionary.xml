@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<messages>
+    <message name="PriceAndAvailabilityResponse" package="io.dscope.rosettanet.interchange.priceandavailabilityresponse.v02_01" type="PIP3A2" version="02_01"/>
+    <message name="PriceAndAvailabilityRequest" package="io.dscope.rosettanet.interchange.priceandavailabilityrequest.v02_01" type="PIP3A2" version="02_01"/>
+    <message name="PurchaseOrderConfirmation" package="io.dscope.rosettanet.interchange.purchaseorderconfirmation.v02_00" type="PIP3A4" version="02_00"/>
+    <message name="PurchaseOrderRequest" package="io.dscope.rosettanet.interchange.purchaseorderrequest.v02_00" type="PIP3A4" version="02_00"/>
+    <message name="PurchaseOrderConfirmation" package="io.dscope.rosettanet.interchange.purchaseorderconfirmation.v02_01" type="PIP3A4" version="02_01"/>
+    <message name="PurchaseOrderRequest" package="io.dscope.rosettanet.interchange.purchaseorderrequest.v02_01" type="PIP3A4" version="02_01"/>
+    <message name="PurchaseOrderConfirmation" package="io.dscope.rosettanet.interchange.purchaseorderconfirmation.v02_01" type="PIP3A4" version="02_01"/>
+    <message name="PurchaseOrderRequest" package="io.dscope.rosettanet.interchange.purchaseorderrequest.v02_01" type="PIP3A4" version="02_01"/>
+    <message name="PurchaseOrderConfirmation" package="io.dscope.rosettanet.interchange.purchaseorderconfirmation.v02_04" type="PIP3A4" version="02_04"/>
+    <message name="PurchaseOrderRequest" package="io.dscope.rosettanet.interchange.purchaseorderrequest.v02_04" type="PIP3A4" version="02_04"/>
+    <message name="PurchaseOrderConfirmation" package="io.dscope.rosettanet.interchange.purchaseorderconfirmation.v02_05" type="PIP3A4" version="02_05"/>
+    <message name="PurchaseOrderRequest" package="io.dscope.rosettanet.interchange.purchaseorderrequest.v02_05" type="PIP3A4" version="02_05"/>
+    <message name="PurchaseOrderConfirmation" package="io.dscope.rosettanet.interchange.purchaseorderconfirmation.v02_05" type="PIP3A4" version="02_05"/>
+    <message name="PurchaseOrderRequest" package="io.dscope.rosettanet.interchange.purchaseorderrequest.v02_05" type="PIP3A4" version="02_05"/>
+    <message name="PurchaseOrderStatusDistribution" package="io.dscope.rosettanet.interchange.purchaseorderstatusdistribution.v02_01" type="PIP3A6" version="02_01"/>
+    <message name="PurchaseOrderUpdateNotification" package="io.dscope.rosettanet.interchange.purchaseorderupdatenotification.v02_02" type="PIP3A7" version="02_02"/>
+</messages>
