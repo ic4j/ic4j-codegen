@@ -24,6 +24,8 @@ public class JavaWriterTest {
 	static final String TRADING2_IDL_FILE = "Trading2.did";	
 	static final String SWIFT_IDL_FILE = "Swift.did";
 	static final String ROSETTANET_IDL_FILE = "RosettaNet.did";	
+	
+	static final String LOAN_IDL_FILE = "LoanProvider.did";	
 
 	static {
 		LOG = LoggerFactory.getLogger(JavaWriterTest.class);
@@ -33,6 +35,7 @@ public class JavaWriterTest {
 	public void test() {
 
 		try {
+			this.generateProxy(LOAN_IDL_FILE, "test.loan", "LoanProxy");
 			this.generateProxy(IC_TEST_IDL_FILE, "test.ic", "ICTestProxy");
 			this.generateProxy(TRADING_TEST_IDL_FILE, "test.trading", "TradingProxy");
 			this.generateProxy(SWIFT_IDL_FILE, "test.swift", "SwiftProxy");
