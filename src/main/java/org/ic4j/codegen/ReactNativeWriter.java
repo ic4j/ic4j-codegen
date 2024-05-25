@@ -118,11 +118,23 @@ public class ReactNativeWriter {
 			if(context.network != null)
 			{
 				AnnotationSpec transportAnnotation = AnnotationSpec.builder(Transport.class).addMember("url","$S",context.network).build();
-				AnnotationSpec identityAnnotation = AnnotationSpec.builder(Identity.class).addMember("type", "$T.$L",IdentityType.class, IdentityType.ANONYMOUS).build();
 				
-				//if(context.identity == null)
+				
+				IdentityType identityType = IdentityType.ANONYMOUS;
+				if(context.identityType != null)
+				{
+					switch(context.identityType)
+					{
+						case "Basic" : identityType = IdentityType.BASIC;break;
+						case "Secp256k1" : identityType = IdentityType.SECP256K1;break;
+						case "Prime256v1" : identityType = IdentityType.PRIME256V1;break;
+					}
+				}
+				
+				AnnotationSpec identityAnnotation = AnnotationSpec.builder(Identity.class).addMember("type", "$T.$L",IdentityType.class, identityType ).build();
+
 	
-					moduleBuilder.addAnnotation(AnnotationSpec.builder(Agent.class).addMember("transport", "$L",transportAnnotation).addMember("identity","$L",identityAnnotation).build());
+				moduleBuilder.addAnnotation(AnnotationSpec.builder(Agent.class).addMember("transport", "$L",transportAnnotation).addMember("identity","$L",identityAnnotation).build());
 			}
 			
 			if(context.canisterId != null)

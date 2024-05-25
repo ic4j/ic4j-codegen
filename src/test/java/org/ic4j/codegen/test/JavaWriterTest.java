@@ -26,6 +26,16 @@ public class JavaWriterTest {
 	static final String ROSETTANET_IDL_FILE = "RosettaNet.did";	
 	
 	static final String LOAN_IDL_FILE = "LoanProvider.did";	
+	
+	static final String ORIGYN_IDL_FILE = "origyn_nft_reference.did";	
+	
+	static final String WS_TYPES_IDL_FILE = "pingpong_backend.did";	
+	
+	static final String PYTHIA_IDL_FILE = "pythia.did";		
+	
+	static final String SWOP_IDL_FILE = "swop.did";	
+	
+	static final String DOCUTRACK_IDL_FILE = "DocuTrack.did";			
 
 	static {
 		LOG = LoggerFactory.getLogger(JavaWriterTest.class);
@@ -35,6 +45,11 @@ public class JavaWriterTest {
 	public void test() {
 
 		try {
+			this.generateProxy(DOCUTRACK_IDL_FILE, "org.ic4j.docutrack", "DocuTrack");			
+			this.generateProxy(SWOP_IDL_FILE, "org.ic4j.swop", "Swop");	
+			this.generateProxy(PYTHIA_IDL_FILE, "org.ic4j.orally.pythia", "Pythia");			
+			this.generateProxy(WS_TYPES_IDL_FILE, "org.ic4j.websocket", "WSProxy");
+			this.generateProxy(ORIGYN_IDL_FILE, "test.origyn", "OrigynProxy");
 			this.generateProxy(LOAN_IDL_FILE, "test.loan", "LoanProxy");
 			this.generateProxy(IC_TEST_IDL_FILE, "test.ic", "ICTestProxy");
 			this.generateProxy(TRADING_TEST_IDL_FILE, "test.trading", "TradingProxy");
@@ -66,6 +81,10 @@ public class JavaWriterTest {
 		javaWriterContext.packageName = packageName;
 		javaWriterContext.canisterId = "un4fu-tqaaa-aaaab-qadjq-cai";
 		javaWriterContext.effectiveCanisterId = "un4fu-tqaaa-aaaab-qadjq-cai";
+		
+		javaWriterContext.identityType = "Basic";
+		
+		javaWriterContext.network = "http://localhost:4943/";
 
 		javaWriter.write(javaWriterContext,Paths.get(""), proxyClassName, types, services);
 

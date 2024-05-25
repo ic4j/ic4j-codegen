@@ -19,8 +19,7 @@ package org.ic4j.codegen;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -30,8 +29,6 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.ic4j.candid.jaxb.JAXBUtils;
-import org.ic4j.candid.parser.IDLType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -40,29 +37,10 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 
-public class JAXBGenerator {
+public abstract class JAXBGenerator {
 	static Logger LOG = LoggerFactory.getLogger(JAXBGenerator.class);
 	TypeWriter typeWriter;
 	
-	public static void main(String[] args) 
-	{
-		
-		MotokoWriter motokoWriter =  new MotokoWriter();
-		
-		boolean convertName = false;
-		if(args.length > 2)
-			convertName = Boolean.parseBoolean(args[2]);
-		
-		motokoWriter.nameConstructor.convertName = convertName;
-		
-		motokoWriter.nameConstructor.hasPostfix = true;
-		motokoWriter.nameConstructor.postfixId = 1;
-		
-		JAXBGenerator jaxbGenerator = new JAXBGenerator(motokoWriter );
-		
-		// RosettaNet_Dictionary.xml test/RosettaNet/Motoko
-		jaxbGenerator.writeTypes(args[0], args[1]);
-	}
 	
 	public JAXBGenerator(TypeWriter typeWriter) {
 		super();
@@ -103,20 +81,8 @@ public class JAXBGenerator {
 		}  	
 	}
 	
-	public void writeType(Class type, String outDir, String fileName)
-	{
+	public abstract void writeType(Class type, String outDir, String fileName);
 
-		
-		IDLType idlType = JAXBUtils.getIDLType(type);
-		try {
-			if(Files.notExists(Paths.get(outDir)))
-				Files.createDirectories(Paths.get(outDir));
-			
-			typeWriter.writeFile(Paths.get(outDir,fileName), idlType);
-		} catch (IOException e) {
-			LOG.error(e.getLocalizedMessage(), e);
-		}
-	}
 	
     static Document getDocument(String fileName) throws SAXException, IOException, ParserConfigurationException
     {

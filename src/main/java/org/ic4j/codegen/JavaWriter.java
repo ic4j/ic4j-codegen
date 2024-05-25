@@ -114,9 +114,19 @@ public class JavaWriter {
 			if(context.network != null)
 			{
 				AnnotationSpec transportAnnotation = AnnotationSpec.builder(Transport.class).addMember("url","$S",context.network).build();
-				AnnotationSpec identityAnnotation = AnnotationSpec.builder(Identity.class).addMember("type", "$T.$L",IdentityType.class, IdentityType.ANONYMOUS).build();
 				
-				//if(context.identity == null)
+				IdentityType identityType = IdentityType.ANONYMOUS;
+				if(context.identityType != null)
+				{
+					switch(context.identityType)
+					{
+						case "Basic" : identityType = IdentityType.BASIC;break;
+						case "Secp256k1" : identityType = IdentityType.SECP256K1;break;
+					}
+				}
+				
+				AnnotationSpec identityAnnotation = AnnotationSpec.builder(Identity.class).addMember("type", "$T.$L",IdentityType.class, identityType ).build();
+				
 	
 				proxyBuilder.addAnnotation(AnnotationSpec.builder(Agent.class).addMember("transport", "$L",transportAnnotation).addMember("identity","$L",identityAnnotation).build());
 			}		
@@ -140,7 +150,7 @@ public class JavaWriter {
 				
 				String funcName = name;
 				
-				funcName = this.normalizeVarName(funcName);
+				funcName = this.normalizeMethodName(funcName);
 				
 				if(name.equals("void"))
 					funcName = "voidFunc";
@@ -172,6 +182,8 @@ public class JavaWriter {
 					{
 						String argName = "arg" + i++;
 						
+						this.setTypeName(context, argType, this.normalizeClassName(funcName) + this.normalizeClassName(argName));
+						
 						TypeName typeName = this.toTypeName(argType, context.packageName, false);
 						
 						Type type = argType.getType();
@@ -187,6 +199,8 @@ public class JavaWriter {
 				{
 					IDLType retType = methType.rets.get(0);
 					
+					this.setTypeName(context, retType, this.normalizeClassName(funcName) + "Response");
+				
 					TypeName typeName = this.toTypeName(retType, context.packageName, isFuture);
 					
 					methodBuilder.returns(typeName);
@@ -273,6 +287,8 @@ public class JavaWriter {
 				
 				String fieldName = name;
 				
+				this.setTypeName(context, fieldType, typeName + this.normalizeClassName(fieldName));
+				
 				fieldName = this.normalizeVarName(fieldName);
 							
 				TypeName fieldTypeName = this.toTypeName(fieldType, context.packageName, false);
@@ -323,7 +339,9 @@ public class JavaWriter {
 				
 				if(fieldType != null)					
 				{					
-					Type type = fieldType.getType();
+					Type type = fieldType.getType();					
+
+					this.setTypeName(context, fieldType, typeName + this.normalizeClassName(fieldName));
 					
 					TypeName fieldTypeName = this.toTypeName(fieldType, context.packageName, false);
 					
@@ -438,6 +456,20 @@ public class JavaWriter {
 					
 	}
 	
+	void setTypeName(JavaWriterContext context, IDLType idlType, String name) throws IOException
+	{
+		if(idlType.getType() == Type.OPT || idlType.getType() == Type.VEC)
+			this.setTypeName(context, idlType.getInnerType(), name);
+		else	
+		{
+			if(idlType.getName() == null)
+			{	
+				idlType.setName(name);		
+				this.generateType(context, idlType);
+			}
+		}		
+	}
+	
 	String normalizeClassName(String name)
 	{
 		if(name == null)
@@ -450,11 +482,25 @@ public class JavaWriter {
 	
 	String normalizeVarName(String name)
 	{
+		if(name == null)
+			return name;
+		
 		if(name.equals("void"))
 			name = "voidField";
 		if(name.equals("record"))
-			name = "recordField";
+			name = "recordField";		
 		
+		if (!name.matches("^[a-zA-Z][a-zA-Z0-9]*?$")) 
+			 name = "field" + name;
+	
+		
+		name = name.replaceFirst(name.substring(0, 1), name.substring(0, 1).toLowerCase());
+		
+		return name;
+	}
+	
+	String normalizeMethodName(String name)
+	{
 		if(name == null)
 			return name;
 		

@@ -24,6 +24,13 @@ public class ReactNativeWriterTest {
 	static final String TRADING2_IDL_FILE = "Trading2.did";	
 	static final String SWIFT_IDL_FILE = "Swift.did";
 	static final String ROSETTANET_IDL_FILE = "RosettaNet.did";	
+	static final String ORIGYN_IDL_FILE = "origyn_nft_reference.did";	
+	
+	static final String PYTHIA_IDL_FILE = "pythia.did";		
+	
+	static final String SWOP_IDL_FILE = "swop.did";	
+	
+	static final String DOCUTRACK_IDL_FILE = "DocuTrack.did";	
 
 	static {
 		LOG = LoggerFactory.getLogger(ReactNativeWriterTest.class);
@@ -33,10 +40,14 @@ public class ReactNativeWriterTest {
 	public void test() {
 
 		try {
+			this.generateModule(DOCUTRACK_IDL_FILE, "org.ic4j.reactnative.docutrack", "DocuTrackModule");			
+			this.generateModule(SWOP_IDL_FILE, "org.ic4j.reactnative.swop", "SwopModule");	
+			this.generateModule(PYTHIA_IDL_FILE, "org.ic4j.reactnative.orally.pythia", "PythiaModule");				
 			this.generateModule(IC_TEST_IDL_FILE, "test.reactnative.ic", "ICReactNativeModule");
-			//this.generateModule(TRADING_TEST_IDL_FILE, "test.trading", "TradingProxy");
-			//this.generateModule(SWIFT_IDL_FILE, "test.swift", "SwiftProxy");
-			//this.generateModule(ROSETTANET_IDL_FILE, "test.rosettanet", "RosettaNetProxy");
+			this.generateModule(ORIGYN_IDL_FILE, "test.reactnative.origyn", "OrigynModule");
+		    this.generateModule(TRADING_TEST_IDL_FILE, "test.reactnative.trading", "TradingModule");
+			this.generateModule(SWIFT_IDL_FILE, "test.reactnative.swift", "SwiftModule");
+			this.generateModule(ROSETTANET_IDL_FILE, "test.reactnative.rosettanet", "RosettaNetModule");
 
 		} catch (Exception e) {
 			LOG.error(e.getLocalizedMessage(), e);
@@ -65,6 +76,8 @@ public class ReactNativeWriterTest {
 		javaWriterContext.effectiveCanisterId = "un4fu-tqaaa-aaaab-qadjq-cai";
 		
 		javaWriterContext.network= "https://m7sm4-2iaaa-aaaab-qabra-cai.ic0.app/";
+		
+		javaWriterContext.identityType = "Secp256k1";
 
 		reactNativeWriter.write(javaWriterContext,Paths.get(""), moduleClassName, types, services);
 

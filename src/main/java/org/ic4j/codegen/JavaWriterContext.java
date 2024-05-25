@@ -28,7 +28,7 @@ public class JavaWriterContext extends TypeWriterContext {
 	
 	public String network;
 	
-	public String identity;
+	public String identityType;
 	
 	public boolean loadIDL = false;
 	
