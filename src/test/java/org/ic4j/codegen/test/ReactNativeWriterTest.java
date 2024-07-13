@@ -31,6 +31,8 @@ public class ReactNativeWriterTest {
 	static final String SWOP_IDL_FILE = "swop.did";	
 	
 	static final String DOCUTRACK_IDL_FILE = "DocuTrack.did";	
+	
+	static final String ORBIT_IDL_FILE = "orbit.did";		
 
 	static {
 		LOG = LoggerFactory.getLogger(ReactNativeWriterTest.class);
@@ -40,6 +42,8 @@ public class ReactNativeWriterTest {
 	public void test() {
 
 		try {
+			this.generateModule(ORBIT_IDL_FILE, "org.ic4j.reactnative.orbit", "OrbitModule");			
+			
 			this.generateModule(DOCUTRACK_IDL_FILE, "org.ic4j.reactnative.docutrack", "DocuTrackModule");			
 			this.generateModule(SWOP_IDL_FILE, "org.ic4j.reactnative.swop", "SwopModule");	
 			this.generateModule(PYTHIA_IDL_FILE, "org.ic4j.reactnative.orally.pythia", "PythiaModule");				

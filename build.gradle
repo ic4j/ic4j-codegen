@@ -7,13 +7,13 @@
  */
 
 plugins {
-    id 'java'
-    id 'eclipse'
+	id 'java'
+	id 'eclipse'
 }
 
 
 group 'org.ic4j'
-version '0.7.0'
+version '0.7.1'
 
 sourceCompatibility = 1.8
 
@@ -47,18 +47,25 @@ task fatJar(type: Jar) {
 
 test {
     useJUnitPlatform()
-    
-    exclude '**/*SwiftTest*'
-    exclude '**/*RosettaNetTest*'
 }
 
 dependencies {
 	compileOnly name: 'android-31'
-	compileOnly name: 'react-android-0.71.11'	
+	compileOnly name: 'react-android-0.71.11'
 	
-	implementation group: 'org.ic4j', name: 'ic4j-reactnative', version: '0.7.0'
-	implementation group: 'org.ic4j', name: 'ic4j-agent', version: '0.7.0'		
-	implementation group: 'org.ic4j', name: 'ic4j-candid', version: '0.7.0'	
+	implementation group: 'org.ic4j', name: 'ic4j-reactnative', version: '0.7.1'
+	implementation group: 'org.ic4j', name: 'ic4j-agent', version: '0.7.1'		
+	implementation group: 'org.ic4j', name: 'ic4j-candid', version: '0.7.1'
+	implementation group: 'org.ic4j', name: 'ic4j-spring', version: '0.7.1.1'
+	
+	// https://mvnrepository.com/artifact/org.springframework/spring-context
+	implementation group: 'org.springframework', name: 'spring-context', version: '5.3.29'
+	
+	// https://mvnrepository.com/artifact/jakarta.annotation/jakarta.annotation-api
+	implementation group: 'jakarta.annotation', name: 'jakarta.annotation-api', version: '3.0.0'	
+	
+	    // JAXB dependencies
+    implementation group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.1'	
 
 	// https://mvnrepository.com/artifact/com.squareup/javapoet
 	implementation group: 'com.squareup', name: 'javapoet', version: '1.13.0'
@@ -69,18 +76,18 @@ dependencies {
 	// https://mvnrepository.com/artifact/org.slf4j/slf4j-simple
 	implementation group: 'org.slf4j', name: 'slf4j-simple', version: '2.0.13'
 	
-		// https://mvnrepository.com/artifact/info.picocli/picocli
+	// https://mvnrepository.com/artifact/info.picocli/picocli
 	implementation group: 'info.picocli', name: 'picocli', version: '4.7.6'
 	
     testImplementation name: 'android-31'
-	testImplementation name: 'react-android-0.71.11'
+	testImplementation name: 'react-android-0.71.11'	
 	
 	testImplementation group: 'io.dscope', name: 'dscope-rosettanet-javax-jaxb', version: '0.0.1'
 	
 	testImplementation group: 'com.prowidesoftware', name: 'pw-iso20022', version: 'SRU2022-9.3.6'		
 	
 	// https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine
-	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.9.2'
+	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.10.0'
 				
 }
 

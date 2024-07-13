@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import org.ic4j.candid.jakarta.JAXBUtils;
+import org.ic4j.candid.jaxb.jakarta.JAXBUtils;
 import org.ic4j.candid.parser.IDLType;
 
 

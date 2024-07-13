@@ -35,7 +35,9 @@ public class JavaWriterTest {
 	
 	static final String SWOP_IDL_FILE = "swop.did";	
 	
-	static final String DOCUTRACK_IDL_FILE = "DocuTrack.did";			
+	static final String DOCUTRACK_IDL_FILE = "DocuTrack.did";	
+	
+	static final String ORBIT_IDL_FILE = "orbit.did";	
 
 	static {
 		LOG = LoggerFactory.getLogger(JavaWriterTest.class);
@@ -45,6 +47,7 @@ public class JavaWriterTest {
 	public void test() {
 
 		try {
+			this.generateProxy(ORBIT_IDL_FILE, "org.ic4j.orbit", "Orbit");
 			this.generateProxy(DOCUTRACK_IDL_FILE, "org.ic4j.docutrack", "DocuTrack");			
 			this.generateProxy(SWOP_IDL_FILE, "org.ic4j.swop", "Swop");	
 			this.generateProxy(PYTHIA_IDL_FILE, "org.ic4j.orally.pythia", "Pythia");			
@@ -85,6 +88,8 @@ public class JavaWriterTest {
 		javaWriterContext.identityType = "Basic";
 		
 		javaWriterContext.network = "http://localhost:4943/";
+		
+		javaWriter.useFuture = false;
 
 		javaWriter.write(javaWriterContext,Paths.get(""), proxyClassName, types, services);
 

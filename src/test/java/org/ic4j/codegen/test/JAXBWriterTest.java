@@ -1,7 +1,7 @@
 package org.ic4j.codegen.test;
 
 
-import org.ic4j.candid.jaxb.JAXBUtils;
+import org.ic4j.candid.jaxb.javax.JAXBUtils;
 import org.ic4j.candid.parser.IDLType;
 import org.ic4j.codegen.MotokoWriter;
 

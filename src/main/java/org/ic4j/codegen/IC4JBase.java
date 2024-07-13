@@ -88,6 +88,26 @@ public abstract class IC4JBase {
 		javaWriter.write(javaWriterContext, Paths.get(outputDir), className, types, services);
 	}
 	
+	protected static void createSpringService(String outputDir, String packageName, String serviceClassName, String className,  boolean verbose, boolean annotate, String candid, String canisterId, String network, String identityFile, String identityType) throws CodegenException, IOException, URISyntaxException {
+		IDLParser idlParser = parseIDL(candid,canisterId,network,identityFile, identityType);	
+
+		Map<String, IDLType> types = idlParser.getTypes();
+
+		Map<String, IDLType> services = idlParser.getServices();
+
+		SpringWriter springWriter = new SpringWriter();
+
+		SpringWriterContext springWriterContext = new SpringWriterContext();
+
+		springWriterContext.packageName = packageName;
+		springWriterContext.canisterId = canisterId;
+		springWriterContext.network = network;			
+		springWriterContext.verbose = verbose;
+		springWriterContext.annotate = annotate;		
+		
+		springWriter.write(springWriterContext, Paths.get(outputDir),serviceClassName, className, types, services);
+	}	
+	
 	protected static void createReactNativeModule(String outputDir, String packageName, String className, boolean verbose, boolean annotate, String candid, String canisterId, String network, String identityFile, String identityType) throws CodegenException, IOException, URISyntaxException {
 		IDLParser idlParser = parseIDL(candid,canisterId,network,identityFile, identityType);	
 

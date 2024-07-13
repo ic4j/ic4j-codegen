@@ -213,10 +213,6 @@ public class ReactNativeWriter {
 					}
 				}
 				
-
-				
-
-				
 				methodBuilder.addParameter(ParameterSpec.builder(Promise.class, "promise").build());
 				
 				moduleBuilder.addMethod(methodBuilder.build());
