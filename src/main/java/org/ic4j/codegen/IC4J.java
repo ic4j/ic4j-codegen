@@ -65,7 +65,7 @@ public class IC4J extends IC4JBase implements Callable<Integer>  {
 	}
 
 	public Integer call() throws Exception {
-		System.out.println("Subcommand needed: 'java', 'reactnative', 'motoko' ");
+		System.out.println("Subcommand needed: 'java', 'spring', 'reactnative', 'motoko' ");
 		return 0;		
 	}
 

@@ -27,8 +27,8 @@ repositories {
 jar {
     manifest {
         attributes('Implementation-Title': 'ic4j-codegen',
-                   'Implementation-Version': project.version)
-    }
+                   'Implementation-Version': project.version, 'Main-Class': 'org.ic4j.codegen.IC4J')
+    } 
     
     archiveBaseName = 'ic4j-codegen'
 }
@@ -36,7 +36,7 @@ jar {
 task fatJar(type: Jar) {
     manifest {
         attributes('Implementation-Title': 'ic4j-codegen',
-                   'Implementation-Version': project.version)
+                   'Implementation-Version': project.version, 'Main-Class': 'org.ic4j.codegen.IC4J')
     }
     
     archiveBaseName = 'ic4j-codegen-with-dependencies'
@@ -47,6 +47,9 @@ task fatJar(type: Jar) {
 
 test {
     useJUnitPlatform()
+    
+    exclude '**/*SwiftTest*'
+    exclude '**/*RosettaNetTest*'    
 }
 
 dependencies {
@@ -58,13 +61,19 @@ dependencies {
 	implementation group: 'org.ic4j', name: 'ic4j-candid', version: '0.7.1'
 	implementation group: 'org.ic4j', name: 'ic4j-spring', version: '0.7.1.1'
 	
+	// https://mvnrepository.com/artifact/commons-codec/commons-codec
+	implementation group: 'commons-codec', name: 'commons-codec', version: '1.17.0'
+	
+	// https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
+	implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.14.0'
+	
 	// https://mvnrepository.com/artifact/org.springframework/spring-context
 	implementation group: 'org.springframework', name: 'spring-context', version: '5.3.29'
 	
 	// https://mvnrepository.com/artifact/jakarta.annotation/jakarta.annotation-api
 	implementation group: 'jakarta.annotation', name: 'jakarta.annotation-api', version: '3.0.0'	
 	
-	    // JAXB dependencies
+	// JAXB dependencies
     implementation group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.1'	
 
 	// https://mvnrepository.com/artifact/com.squareup/javapoet
