@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<messages>
+    <message name="ApplicationResponse" class="ApplicationResponseType" package="oasis.names.specification.ubl.schema.xsd.applicationresponse_2" type="ubl20" version="20"/>
+    <message name="AttachedDocument" class="AttachedDocumentType" package="oasis.names.specification.ubl.schema.xsd.attacheddocument_2" type="ubl20" version="20"/>
+    <message name="BillOfLading" class="BillOfLadingType" package="oasis.names.specification.ubl.schema.xsd.billoflading_2" type="ubl20" version="20"/>
+    <message name="Catalogue" class="CatalogueType" package="oasis.names.specification.ubl.schema.xsd.catalogue_2" type="ubl20" version="20"/>
+    <message name="CatalogueDeletion" class="CatalogueDeletionType" package="oasis.names.specification.ubl.schema.xsd.cataloguedeletion_2" type="ubl20" version="20"/>
+    <message name="CatalogueItemSpecificationUpdate" class="CatalogueItemSpecificationUpdateType" package="oasis.names.specification.ubl.schema.xsd.catalogueitemspecificationupdate_2" type="ubl20" version="20"/>
+    <message name="CataloguePricingUpdate" class="CataloguePricingUpdateType" package="oasis.names.specification.ubl.schema.xsd.cataloguepricingupdate_2" type="ubl20" version="20"/>
+    <message name="CatalogueRequest" class="CatalogueRequestType" package="oasis.names.specification.ubl.schema.xsd.cataloguerequest_2" type="ubl20" version="20"/>
+    <message name="CertificateOfOrigin" class="CertificateOfOriginType" package="oasis.names.specification.ubl.schema.xsd.certificateoforigin_2" type="ubl20" version="20"/>
+    <message name="CreditNote" class="CreditNoteType" package="oasis.names.specification.ubl.schema.xsd.creditnote_2" type="ubl20" version="20"/>
+    <message name="DebitNote" class="DebitNoteType" package="oasis.names.specification.ubl.schema.xsd.debitnote_2" type="ubl20" version="20"/>
+    <message name="DespatchAdvice" class="DespatchAdviceType" package="oasis.names.specification.ubl.schema.xsd.despatchadvice_2" type="ubl20" version="20"/>
+    <message name="ForwardingInstructions" class="ForwardingInstructionsType" package="oasis.names.specification.ubl.schema.xsd.forwardinginstructions_2" type="ubl20" version="20"/>
+    <message name="FreightInvoice" class="FreightInvoiceType" package="oasis.names.specification.ubl.schema.xsd.freightinvoice_2" type="ubl20" version="20"/>
+    <message name="Invoice" class="InvoiceType" package="oasis.names.specification.ubl.schema.xsd.invoice_2" type="ubl20" version="20"/>
+    <message name="Order" class="OrderType" package="oasis.names.specification.ubl.schema.xsd.order_2" type="ubl20" version="20"/>
+    <message name="OrderCancellation" class="OrderCancellationType" package="oasis.names.specification.ubl.schema.xsd.ordercancellation_2" type="ubl20" version="20"/>
+    <message name="OrderChange" class="OrderChangeType" package="oasis.names.specification.ubl.schema.xsd.orderchange_2" type="ubl20" version="20"/>
+    <message name="OrderResponse" class="OrderResponseType" package="oasis.names.specification.ubl.schema.xsd.orderresponse_2" type="ubl20" version="20"/>
+    <message name="OrderResponseSimple" class="OrderResponseSimpleType" package="oasis.names.specification.ubl.schema.xsd.orderresponsesimple_2" type="ubl20" version="20"/>
+    <message name="PackingList" class="PackingListType" package="oasis.names.specification.ubl.schema.xsd.packinglist_2" type="ubl20" version="20"/>
+    <message name="Quotation" class="QuotationType" package="oasis.names.specification.ubl.schema.xsd.quotation_2" type="ubl20" version="20"/>
+    <message name="ReceiptAdvice" class="ReceiptAdviceType" package="oasis.names.specification.ubl.schema.xsd.receiptadvice_2" type="ubl20" version="20"/>
+    <message name="Reminder" class="ReminderType" package="oasis.names.specification.ubl.schema.xsd.reminder_2" type="ubl20" version="20"/>
+    <message name="RemittanceAdvice" class="RemittanceAdviceType" package="oasis.names.specification.ubl.schema.xsd.remittanceadvice_2" type="ubl20" version="20"/>
+    <message name="RequestForQuotation" class="RequestForQuotationType" package="oasis.names.specification.ubl.schema.xsd.requestforquotation_2" type="ubl20" version="20"/>
+    <message name="SelfBilledCreditNote" class="SelfBilledCreditNoteType" package="oasis.names.specification.ubl.schema.xsd.selfbilledcreditnote_2" type="ubl20" version="20"/>
+    <message name="SelfBilledInvoice" class="SelfBilledInvoiceType" package="oasis.names.specification.ubl.schema.xsd.selfbilledinvoice_2" type="ubl20" version="20"/>
+    <message name="Statement" class="StatementType" package="oasis.names.specification.ubl.schema.xsd.statement_2" type="ubl20" version="20"/>
+    <message name="TransportationStatus" class="TransportationStatusType" package="oasis.names.specification.ubl.schema.xsd.transportationstatus_2" type="ubl20" version="20"/>
+    <message name="Waybill" class="WaybillType" package="oasis.names.specification.ubl.schema.xsd.waybill_2" type="ubl20" version="20"/>
+</messages>

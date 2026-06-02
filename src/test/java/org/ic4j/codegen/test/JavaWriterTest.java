@@ -8,6 +8,7 @@ import org.ic4j.codegen.JavaWriterContext;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 
@@ -18,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 public class JavaWriterTest {
 	static Logger LOG;
+	static final Path OUTPUT_DIR = Paths.get("build", "generated", "test-sources", "java");
 
 	static final String IC_TEST_IDL_FILE = "ic_test.did";
 	static final String TRADING_TEST_IDL_FILE = "Trading.did";
@@ -67,6 +69,7 @@ public class JavaWriterTest {
 	}
 
 	void generateProxy(String idlFileName, String packageName, String proxyClassName) throws IOException {
+		Files.createDirectories(OUTPUT_DIR);
 
 		Reader reader = Files
 				.newBufferedReader(Paths.get(getClass().getClassLoader().getResource(idlFileName).getPath()));
@@ -91,7 +94,7 @@ public class JavaWriterTest {
 		
 		javaWriter.useFuture = false;
 
-		javaWriter.write(javaWriterContext,Paths.get(""), proxyClassName, types, services);
+		javaWriter.write(javaWriterContext, OUTPUT_DIR, proxyClassName, types, services);
 
 	}
 }

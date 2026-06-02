@@ -18,28 +18,49 @@ public class NameConstructor {
 			if(idlType.getJavaType() != null)
 			{
 				Class<?> javaType = idlType.getJavaType();
-																			
-				String packageName = javaType.getPackage().getName();
-				String[] parts = packageName.split("\\.");								
-				
+				Package javaPackage = javaType.getPackage();
+
+				// Synthetic or anonymous classes may have no package metadata.
+				if(javaPackage == null || javaPackage.getName() == null || javaPackage.getName().isEmpty())
+					return (name != null) ? name : javaType.getSimpleName();
+
+				String packageName = javaPackage.getName();
+				String[] parts = packageName.split("\\.");
+				if(parts.length == 0)
+					return (name != null) ? name : javaType.getSimpleName();
+
 				// ignore internal Java classes
 				if("java".equals(parts[0]) || "javax".equals(parts[0]))
-					return name;	
+					return (name != null) ? name : javaType.getSimpleName();	
 				
 				name = javaType.getSimpleName();
 				
 				if(this.hasPrefix)
 				{
-					String part = parts[parts.length - this.prefixId];
-					String prefix  = part.substring(0, 1).toUpperCase() + part.substring(1);
-					name = prefix + name;
+					int prefixIndex = parts.length - this.prefixId;
+					if(prefixIndex >= 0 && prefixIndex < parts.length)
+					{
+						String part = parts[prefixIndex];
+						if(!part.isEmpty())
+						{
+							String prefix  = part.substring(0, 1).toUpperCase() + part.substring(1);
+							name = prefix + name;
+						}
+					}
 				}
 				
 				if(this.hasPostfix)
 				{
-					String part = parts[parts.length - this.postfixId];
-					String postfix  = part.substring(0, 1).toUpperCase() + part.substring(1);
-					name = name + postfix;					
+					int postfixIndex = parts.length - this.postfixId;
+					if(postfixIndex >= 0 && postfixIndex < parts.length)
+					{
+						String part = parts[postfixIndex];
+						if(!part.isEmpty())
+						{
+							String postfix  = part.substring(0, 1).toUpperCase() + part.substring(1);
+							name = name + postfix;
+						}
+					}					
 				}
 			}
 		}

@@ -1,0 +1,31 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "gradle test local wrapper",
+			"type": "shell",
+			"command": "JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home PATH=/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home/bin:/usr/bin:/bin:/usr/sbin:/sbin /bin/sh ./gradlew test --no-daemon",
+			"isBackground": false
+		},
+		{
+			"label": "validate writer tests",
+			"type": "shell",
+			"command": "env",
+			"args": [
+				"JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home",
+				"PATH=/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+				"/bin/sh",
+				"./gradlew",
+				"test",
+				"--no-daemon",
+				"--tests",
+				"org.ic4j.codegen.test.JavaWriterTest",
+				"--tests",
+				"org.ic4j.codegen.test.SpringWriterTest",
+				"--tests",
+				"org.ic4j.codegen.test.ReactNativeWriterTest"
+			],
+			"isBackground": false
+		}
+	]
+}

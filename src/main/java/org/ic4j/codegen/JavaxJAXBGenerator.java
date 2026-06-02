@@ -52,7 +52,8 @@ public class JavaxJAXBGenerator extends JAXBGenerator {
 	}	
 
 	
-	public void writeType(Class type, String outDir, String fileName)
+	@Override
+	public void writeType(Class<?> type, String outDir, String fileName)
 	{
 
 		

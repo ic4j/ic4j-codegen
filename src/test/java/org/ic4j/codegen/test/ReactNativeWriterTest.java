@@ -8,6 +8,7 @@ import org.ic4j.codegen.ReactNativeWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 
@@ -18,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 public class ReactNativeWriterTest {
 	static Logger LOG;
+	static final Path OUTPUT_DIR = Paths.get("build", "generated", "test-sources", "reactnative");
 
 	static final String IC_TEST_IDL_FILE = "ic_test.did";
 	static final String TRADING_TEST_IDL_FILE = "Trading.did";
@@ -61,6 +63,7 @@ public class ReactNativeWriterTest {
 	}
 
 	void generateModule(String idlFileName, String packageName, String moduleClassName) throws IOException {
+		Files.createDirectories(OUTPUT_DIR);
 
 		Reader reader = Files
 				.newBufferedReader(Paths.get(getClass().getClassLoader().getResource(idlFileName).getPath()));
@@ -83,7 +86,7 @@ public class ReactNativeWriterTest {
 		
 		javaWriterContext.identityType = "Secp256k1";
 
-		reactNativeWriter.write(javaWriterContext,Paths.get(""), moduleClassName, types, services);
+		reactNativeWriter.write(javaWriterContext, OUTPUT_DIR, moduleClassName, types, services);
 
 	}
 }

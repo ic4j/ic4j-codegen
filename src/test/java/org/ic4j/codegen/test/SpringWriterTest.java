@@ -8,6 +8,7 @@ import org.ic4j.codegen.SpringWriterContext;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 
@@ -18,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 public class SpringWriterTest {
 	static Logger LOG;
+	static final Path OUTPUT_DIR = Paths.get("build", "generated", "test-sources", "spring");
 
 	static final String IC_TEST_IDL_FILE = "ic_test.did";
 	static final String TRADING_TEST_IDL_FILE = "Trading.did";
@@ -67,6 +69,7 @@ public class SpringWriterTest {
 	}
 
 	void generateService(String idlFileName, String packageName, String serviceClassName, String proxyClassName) throws IOException {
+		Files.createDirectories(OUTPUT_DIR);
 
 		Reader reader = Files
 				.newBufferedReader(Paths.get(getClass().getClassLoader().getResource(idlFileName).getPath()));
@@ -91,6 +94,6 @@ public class SpringWriterTest {
 		
 		springWriter.useFuture = true;
 
-		springWriter.write(springWriterContext,Paths.get(""),serviceClassName, proxyClassName, types, services);
+		springWriter.write(springWriterContext, OUTPUT_DIR, serviceClassName, proxyClassName, types, services);
 	}
 }
