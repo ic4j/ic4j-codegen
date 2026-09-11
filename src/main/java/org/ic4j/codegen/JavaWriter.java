@@ -481,6 +481,6 @@ public class JavaWriter {
 	
 	String normalizeMethodName(String name)
 	{
-		return JavaIdentifier.memberName(name);
+		return JavaIdentifier.methodName(name);
 	}	
 }

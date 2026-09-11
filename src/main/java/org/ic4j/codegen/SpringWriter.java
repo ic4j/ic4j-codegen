@@ -93,7 +93,7 @@ public class SpringWriter extends JavaWriter {
 		
 //		initMethodBuilder.addAnnotation(AnnotationSpec.builder(PostConstruct.class).build());
 		
-		initMethodBuilder.addStatement("super.init($N ,null, null, null, null)",ClassName.get(context.packageName, proxyName) + ".class");
+		initMethodBuilder.addStatement("super.init($N ,null, null, null, null)",ClassName.get(context.packageName, this.normalizeClassName(proxyName)) + ".class");
 		
 		serviceBuilder.addMethod(initMethodBuilder.build());
 
@@ -101,6 +101,7 @@ public class SpringWriter extends JavaWriter {
 		
 		Set<String> names = meths.keySet();
 		Set<String> methodNames = new java.util.HashSet<>();
+		methodNames.add("init");
 		
 
 		for(String name : names)

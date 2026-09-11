@@ -23,6 +23,8 @@ final class JavaIdentifier {
 			"return", "short", "static", "strictfp", "super", "switch", "synchronized", "this",
 			"throw", "throws", "transient", "try", "void", "volatile", "while", "true", "false",
 			"null", "_"));
+	private static final Set<String> RESERVED_METHOD_NAMES = new HashSet<>(
+			Arrays.asList("getClass", "notify", "notifyAll", "wait"));
 
 	private JavaIdentifier() {
 	}
@@ -33,6 +35,13 @@ final class JavaIdentifier {
 
 	static String memberName(String value) {
 		return normalize(value, false, "generatedMember");
+	}
+
+	static String methodName(String value) {
+		String methodName = normalize(value, false, "generatedMethod");
+		if (RESERVED_METHOD_NAMES.contains(methodName))
+			methodName += "Value";
+		return methodName;
 	}
 
 	static String unique(String candidate, Set<String> used) {
