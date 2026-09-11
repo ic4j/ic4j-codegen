@@ -322,6 +322,6 @@ public class ReactNativeWriter {
 	
 	String normalizeVarName(String name)
 	{
-		return JavaIdentifier.memberName(name);
+		return JavaIdentifier.methodName(name);
 	}	
 }

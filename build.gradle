@@ -49,6 +49,14 @@ jar {
     archiveBaseName = 'ic4j-codegen'
 }
 
+configurations {
+	fatJarCompileOnly {
+		canBeConsumed = false
+		canBeResolved = true
+		extendsFrom compileOnly
+	}
+}
+
 task fatJar(type: Jar) {
     manifest {
         attributes('Implementation-Title': 'ic4j-codegen',
@@ -59,7 +67,10 @@ task fatJar(type: Jar) {
 
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 	exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
-    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    from {
+		(configurations.runtimeClasspath + configurations.fatJarCompileOnly)
+				.collect { it.isDirectory() ? it : zipTree(it) }
+	}
     with jar
 }
 
@@ -193,9 +204,15 @@ tasks.withType(Sign).configureEach {
 	}
 }
 
+def generatedTestSourcesDir = layout.buildDirectory.dir('generated/test-sources')
+
+test {
+	outputs.dir generatedTestSourcesDir
+}
+
 tasks.register('compileGeneratedTestSources', JavaCompile) {
 	dependsOn test
-	source fileTree('build/generated/test-sources') {
+	source fileTree(generatedTestSourcesDir) {
 		include '**/*.java'
 	}
 	classpath = sourceSets.test.runtimeClasspath

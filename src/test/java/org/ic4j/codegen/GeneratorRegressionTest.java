@@ -38,6 +38,19 @@ class GeneratorRegressionTest {
 	}
 
 	@Test
+	void reactNativeRemapsFinalObjectMethods() throws Exception {
+		IDLParser parser = parse("service : { getClass: () -> (text) query; }");
+		ReactNativeWriter writer = new ReactNativeWriter();
+
+		writer.write(context("test.react"), outputDir, "TestModule",
+				parser.getTypes(), parser.getServices());
+
+		String source = readGenerated("test/react/TestModule.java");
+		assertTrue(source.contains("void getClassValue(Promise promise)"), source);
+		assertTrue(source.contains("this.query(promise,\"getClass\",String.class)"), source);
+	}
+
+	@Test
 	void javaWriterPreservesConfiguredCollectionAndFutureOptions() throws Exception {
 		IDLParser parser = parse("service : { write: (vec text) -> (text); }");
 		JavaWriter writer = new JavaWriter();
@@ -57,10 +70,39 @@ class GeneratorRegressionTest {
 		assertEquals("Class", JavaIdentifier.className("class"));
 		assertEquals("fooBar", JavaIdentifier.memberName("foo-bar"));
 		assertEquals("value123", JavaIdentifier.memberName("123"));
+		assertEquals("getClassValue", JavaIdentifier.methodName("getClass"));
+		assertEquals("waitValue", JavaIdentifier.methodName("wait"));
 
 		HashSet<String> used = new HashSet<>();
 		assertEquals("name", JavaIdentifier.unique("name", used));
 		assertEquals("name2", JavaIdentifier.unique("name", used));
+	}
+
+	@Test
+	void objectMethodsAndSpringLifecycleNamesAreRemapped() throws Exception {
+		IDLParser parser = parse("service : {"
+				+ " getClass: () -> (text) query;"
+				+ " init: () -> (text) query;"
+				+ " update: () -> (text);"
+				+ "}");
+		JavaWriter javaWriter = new JavaWriter();
+		javaWriter.write(context("test.reserved"), outputDir, "class",
+				parser.getTypes(), parser.getServices());
+		String proxy = readGenerated("test/reserved/Class.java");
+		assertTrue(proxy.contains("getClassValue()"), proxy);
+
+		SpringWriter springWriter = new SpringWriter();
+		springWriter.useFuture = false;
+		SpringWriterContext springContext = new SpringWriterContext();
+		springContext.packageName = "test.spring";
+		springWriter.write(springContext, outputDir, "ReservedService", "foo-bar",
+				parser.getTypes(), parser.getServices());
+
+		String service = readGenerated("test/spring/ReservedService.java");
+		assertTrue(service.contains("implements FooBar"), service);
+		assertTrue(service.contains("super.init(FooBar.class, null, null, null, null)"), service);
+		assertTrue(service.contains("String init2()"), service);
+		assertFalse(service.contains("@Async"), service);
 	}
 
 	@Test

@@ -28,14 +28,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 
 import java.lang.reflect.Field;
@@ -76,7 +69,6 @@ public abstract class JAXBGenerator {
 		int failures = 0;
 		try {
 			xmlDocument = getDocument(dictionaryFileName);
-			final long timeoutMs = Long.getLong("ic4j.codegen.writeTypeTimeoutMs", 0L);
 			final Set<String> skippedClasses = this.getSkippedClasses();
 			final boolean traceGraph = Boolean.getBoolean("ic4j.codegen.traceTypeGraph");
 			final int traceDepth = Integer.getInteger("ic4j.codegen.traceTypeGraphDepth", 4);
@@ -108,10 +100,7 @@ public abstract class JAXBGenerator {
 					Class<?> typeClass = Class.forName(className);
 					if(traceGraph)
 						this.logTypeGraph(typeClass, traceDepth);
-					if(timeoutMs > 0)
-						this.writeTypeWithTimeout(typeClass, typeOutDir, typeFileName, timeoutMs);
-					else
-						this.writeType(typeClass, typeOutDir, typeFileName);
+					this.writeType(typeClass, typeOutDir, typeFileName);
 					long elapsed = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
 					LOG.info(String.format("[%d/%d] Generated %s in %d ms", i + 1, messageElements.getLength(), typeFileName, elapsed));
 				} catch (StackOverflowError e) {
@@ -120,12 +109,6 @@ public abstract class JAXBGenerator {
 				} catch (ClassNotFoundException e) {
 					failures++;
 					LOG.error(String.format("Failed to load type class %s for %s", className, typeFileName), e);
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-					throw new CodegenException("Interrupted while generating " + typeFileName, e);
-				} catch (ExecutionException | TimeoutException e) {
-					failures++;
-					LOG.error(String.format("Failed or timed out while generating %s into %s", className, typeFileName), e);
 				} catch (IOException | RuntimeException e) {
 					failures++;
 					LOG.error(String.format("Failed to generate type for %s into %s", className, typeFileName), e);
@@ -141,33 +124,6 @@ public abstract class JAXBGenerator {
 	}
 	
 	public abstract void writeType(Class<?> type, String outDir, String fileName) throws IOException;
-
-	void writeTypeWithTimeout(final Class<?> type, final String outDir, final String fileName, final long timeoutMs)
-			throws InterruptedException, ExecutionException, TimeoutException
-	{
-		ThreadFactory threadFactory = runnable -> {
-			Thread thread = new Thread(runnable, "jaxb-write-type");
-			thread.setDaemon(true);
-			return thread;
-		};
-
-		ExecutorService executor = Executors.newSingleThreadExecutor(threadFactory);
-		try {
-			Callable<Void> task = () -> {
-				this.writeType(type, outDir, fileName);
-				return null;
-			};
-			Future<Void> future = executor.submit(task);
-			try {
-				future.get(timeoutMs, TimeUnit.MILLISECONDS);
-			} catch (TimeoutException e) {
-				future.cancel(true);
-				throw e;
-			}
-		} finally {
-			executor.shutdownNow();
-		}
-	}
 
 	Set<String> getSkippedClasses()
 	{

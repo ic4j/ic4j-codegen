@@ -93,7 +93,8 @@ public class SpringWriter extends JavaWriter {
 		
 //		initMethodBuilder.addAnnotation(AnnotationSpec.builder(PostConstruct.class).build());
 		
-		initMethodBuilder.addStatement("super.init($N ,null, null, null, null)",ClassName.get(context.packageName, this.normalizeClassName(proxyName)) + ".class");
+		initMethodBuilder.addStatement("super.init($T.class, null, null, null, null)",
+				ClassName.get(context.packageName, this.normalizeClassName(proxyName)));
 		
 		serviceBuilder.addMethod(initMethodBuilder.build());
 
@@ -167,7 +168,7 @@ public class SpringWriter extends JavaWriter {
 					
 					methodBuilder.returns(typeName);
 					
-					if(isFuture)
+					if(isFuture && this.useFuture)
 						methodBuilder.addAnnotation(AnnotationSpec.builder(Async.class).build());
 					
 					methodBuilder.addStatement("return this.call($S" + args + ")",name);

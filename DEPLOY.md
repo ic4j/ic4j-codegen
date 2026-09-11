@@ -36,7 +36,8 @@ scripts/release-preflight.sh
 
 ## Dry Runs
 
-Run dry runs first to validate task wiring and credentials without uploading artifacts:
+Run a dry run first to validate local publication task wiring without uploading artifacts.
+Use `scripts/release-preflight.sh` above to validate required release credentials:
 
 ```bash
 source scripts/load-maven-env.sh
