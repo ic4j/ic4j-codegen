@@ -18,6 +18,7 @@ import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaType;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -69,6 +70,7 @@ public class XSDWriterTest {
 			
 		} catch (Exception e) {
 			LOG.error(e.getLocalizedMessage(), e);
+			Assertions.fail(e.getLocalizedMessage());
 		}
 
 	}

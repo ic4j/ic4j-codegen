@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - Use JDK 21 for publishing tasks.
-- `build-export.gradle` is the publishing build file.
+- Publishing is configured in the tracked `build.gradle`.
 - Signing can come from `gradle.properties` or environment variables.
 - Central credentials can come from either:
   - `centralUsername` and `centralPassword`
@@ -40,8 +40,7 @@ Run dry runs first to validate task wiring and credentials without uploading art
 
 ```bash
 source scripts/load-maven-env.sh
-./gradlew -b build-export.gradle --no-daemon -PcentralUsername="$CENTRAL_PORTAL_USERNAME" -PcentralPassword="$CENTRAL_PORTAL_PASSWORD" publishAggregationToCentralPortal --dry-run --console=plain
-./gradlew -b build-export.gradle --no-daemon -PcentralUsername="$CENTRAL_PORTAL_USERNAME" -PcentralPassword="$CENTRAL_PORTAL_PASSWORD" publishAggregationToCentralSnapshots --dry-run --console=plain
+./gradlew --no-daemon publishToMavenLocal --dry-run --console=plain
 ```
 
 ## Test Matrix
@@ -80,13 +79,13 @@ source scripts/load-maven-env.sh
 
 ```bash
 source scripts/load-maven-env.sh
-./gradlew -b build-export.gradle --no-daemon -PcentralUsername="$CENTRAL_PORTAL_USERNAME" -PcentralPassword="$CENTRAL_PORTAL_PASSWORD" publishToMavenLocal --console=plain
+./gradlew --no-daemon publishToMavenLocal --console=plain
 ```
 
 Artifacts are published under:
 
 ```bash
-~/.m2/repository/org/ic4j/ic4j-codegen/0.8.0
+~/.m2/repository/org/ic4j/ic4j-codegen/0.8.5
 ```
 
 ## Central Portal Release
@@ -94,21 +93,29 @@ Artifacts are published under:
 ```bash
 source scripts/load-maven-env.sh
 scripts/release-preflight.sh
-./gradlew -b build-export.gradle --no-daemon -PcentralUsername="$CENTRAL_PORTAL_USERNAME" -PcentralPassword="$CENTRAL_PORTAL_PASSWORD" publishAggregationToCentralPortal --console=plain
+./gradlew --no-daemon \
+  -PreleaseRepositoryUrl="<Maven-compatible-release-repository>" \
+  -PreleaseRepositoryUsername="$CENTRAL_PORTAL_USERNAME" \
+  -PreleaseRepositoryPassword="$CENTRAL_PORTAL_PASSWORD" \
+  publishMavenJavaPublicationToReleaseRepository --console=plain
 ```
 
 ## Central Snapshots
 
 ```bash
 source scripts/load-maven-env.sh
-./gradlew -b build-export.gradle --no-daemon -PcentralUsername="$CENTRAL_PORTAL_USERNAME" -PcentralPassword="$CENTRAL_PORTAL_PASSWORD" publishAggregationToCentralSnapshots --console=plain
+./gradlew --no-daemon \
+  -PreleaseRepositoryUrl="<Maven-compatible-snapshot-repository>" \
+  -PreleaseRepositoryUsername="$CENTRAL_PORTAL_USERNAME" \
+  -PreleaseRepositoryPassword="$CENTRAL_PORTAL_PASSWORD" \
+  publishMavenJavaPublicationToReleaseRepository --console=plain
 ```
 
 ## Useful Checks
 
 ```bash
-./gradlew -b build-export.gradle tasks --console=plain
-./gradlew -b build-export.gradle publishToMavenLocal --info
+./gradlew tasks --console=plain
+./gradlew publishToMavenLocal --info
 ```
 
 Release checklist for 0.8.0 and later:
@@ -116,6 +123,6 @@ Release checklist for 0.8.0 and later:
 1. Run `./gradlew clean test` on JDK 8.
 2. Run `./gradlew clean test` on JDK 11.
 3. Run `source scripts/load-maven-env.sh && ./gradlew cleanTest test` on JDK 21.
-4. Run `source scripts/load-maven-env.sh && ./gradlew -b build-export.gradle -PcentralUsername="$CENTRAL_PORTAL_USERNAME" -PcentralPassword="$CENTRAL_PORTAL_PASSWORD" publishToMavenLocal` on JDK 21.
+4. Run `source scripts/load-maven-env.sh && ./gradlew publishToMavenLocal` on JDK 21.
 5. Run `source scripts/load-maven-env.sh && scripts/release-preflight.sh`.
 6. Publish only after the JDK 8, 11, and 21 validation steps all pass.

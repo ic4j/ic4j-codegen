@@ -8,14 +8,14 @@ import picocli.CommandLine;
 
 //JAVA 11+
 //REPOS mavencentral
-//DEPS org.ic4j:ic4j-codegen:0.7.1
-//DEPS org.ic4j:ic4j-agent:0.7.1
-//DEPS org.ic4j:ic4j-reactnative:0.7.1
-//DEPS org.ic4j:ic4j-spring:0.7.1.1
-//DEPS org.ic4j:ic4j-candid:0.7.1
-//DEPS org.slf4j:slf4j-simple:2.0.13
+//DEPS org.ic4j:ic4j-codegen:0.8.5
+//DEPS org.ic4j:ic4j-agent:0.8.5
+//DEPS org.ic4j:ic4j-reactnative:0.8.0
+//DEPS org.ic4j:ic4j-spring:0.8.0
+//DEPS org.ic4j:ic4j-candid:0.8.5
+//DEPS org.slf4j:slf4j-simple:2.0.17
 //DEPS com.squareup:javapoet:1.13.0
-//DEPS info.picocli:picocli:4.7.6
+//DEPS info.picocli:picocli:4.7.7
 
 /**
  * Main to run IC4JJBang

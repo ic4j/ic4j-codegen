@@ -26,7 +26,8 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "ic4j")
+@Command(name = "ic4j", mixinStandardHelpOptions = true,
+		description = "Generates Internet Computer client artifacts from Candid IDL.")
 public class IC4J extends IC4JBase implements Callable<Integer>  {
 	static final String DEFAULT_NETWORK = "http://localhost:4943/";
 
@@ -35,7 +36,7 @@ public class IC4J extends IC4JBase implements Callable<Integer>  {
 	@Option(names = { "--identity" })
 	private String identityFile;
 
-	@Option(names = { "--identity-type" })
+	@Option(names = { "--identity-type" }, description = "Identity type: basic, secp256k1, or prime256v1")
 	String identityType;
 
 	@Option(names = { "--network" })
@@ -51,7 +52,7 @@ public class IC4J extends IC4JBase implements Callable<Integer>  {
 	private boolean annotate = false;
 
 	@Option(names = { "--package-name" })
-	private String packageName;
+	private String packageName = "";
 
 	@Option(names = { "--output-dir" })
 	private String outputDir = "";
@@ -65,11 +66,11 @@ public class IC4J extends IC4JBase implements Callable<Integer>  {
 	}
 
 	public Integer call() throws Exception {
-		System.out.println("Subcommand needed: 'java', 'spring', 'reactnative', 'motoko' ");
-		return 0;		
+		System.err.println("Subcommand needed: 'java', 'spring', or 'reactnative'");
+		return CommandLine.ExitCode.USAGE;
 	}
 
-	@Command(name = "java", description = "Generates Java Proxy inteface from IDL file or canister")
+	@Command(name = "java", description = "Generates Java proxy interface from IDL file or canister")
 	public void createJavaProxy(
 			@Parameters(index = "0", paramLabel = "<className>", description = "Java Proxy interface name") String className) throws Exception {
 		try {
@@ -77,7 +78,6 @@ public class IC4J extends IC4JBase implements Callable<Integer>  {
 			createJavaProxy(this.outputDir, this.packageName,className,this.verbose,this.annotate,this.candid,this.canisterId,this.network,this.identityFile, this.identityType);			
 
 		} catch (Exception e) {
-			LOG.info(e.getLocalizedMessage());
 			LOG.error(e.getLocalizedMessage(), e);		
 			
 			throw e;
@@ -94,7 +94,6 @@ public class IC4J extends IC4JBase implements Callable<Integer>  {
 			createSpringService(this.outputDir, this.packageName, serviceClassName, className,this.verbose,this.annotate,this.candid,this.canisterId,this.network,this.identityFile, this.identityType);			
 
 		} catch (Exception e) {
-			LOG.info(e.getLocalizedMessage());
 			LOG.error(e.getLocalizedMessage(), e);		
 			
 			throw e;
@@ -110,7 +109,6 @@ public class IC4J extends IC4JBase implements Callable<Integer>  {
 			createReactNativeModule(this.outputDir, this.packageName,className,this.verbose,this.annotate,this.candid,this.canisterId,this.network,this.identityFile, this.identityType);			
 
 		} catch (Exception e) {
-			LOG.info(e.getLocalizedMessage());
 			LOG.error(e.getLocalizedMessage(), e);
 			
 			throw e;

@@ -25,6 +25,7 @@ import javax.lang.model.type.NullType;
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.ic4j.agent.annotations.Agent;
@@ -66,16 +67,14 @@ public class JavaWriter {
 	{				
 		javaWriterContext.writer = new StringWriter();	
 		
-		JavaWriter javaWriter = new JavaWriter();
-		
 		for(IDLType idlType : types.values())
 		{
-			javaWriter.generateType(javaWriterContext, idlType);
+			this.generateType(javaWriterContext, idlType);
 		}
 		
 		for(IDLType idlType : services.values())
 		{
-			javaWriter.generateProxy(javaWriterContext,proxyName, idlType);		
+			this.generateProxy(javaWriterContext,proxyName, idlType);
 		}		
 		
 		Set<String> keys = javaWriterContext.types.keySet(); 
@@ -118,10 +117,11 @@ public class JavaWriter {
 				IdentityType identityType = IdentityType.ANONYMOUS;
 				if(context.identityType != null)
 				{
-					switch(context.identityType)
+					switch(context.identityType.toLowerCase(java.util.Locale.ROOT))
 					{
-						case "Basic" : identityType = IdentityType.BASIC;break;
-						case "Secp256k1" : identityType = IdentityType.SECP256K1;break;
+						case "basic" : identityType = IdentityType.BASIC;break;
+						case "secp256k1" : identityType = IdentityType.SECP256K1;break;
+						case "prime256v1" : identityType = IdentityType.PRIME256V1;break;
 					}
 				}
 				
@@ -141,6 +141,7 @@ public class JavaWriter {
 		Map<String,IDLType> meths = idlType.getMeths();
 		
 		Set<String> names = meths.keySet();
+		Set<String> methodNames = new HashSet<>();
 		
 		for(String name : names)
 		{
@@ -150,10 +151,7 @@ public class JavaWriter {
 				
 				String funcName = name;
 				
-				funcName = this.normalizeMethodName(funcName);
-				
-				if(name.equals("void"))
-					funcName = "voidFunc";
+				funcName = JavaIdentifier.unique(this.normalizeMethodName(funcName), methodNames);
 				
 				MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(funcName)
 						.addAnnotation(AnnotationSpec.builder(Name.class).addMember("value", "$S", name).build())
@@ -195,6 +193,8 @@ public class JavaWriter {
 					}
 				}
 				
+				if(methType.rets.size() > 1)
+					throw new IOException("Java generation does not support multiple return values for method " + name);
 				if(!methType.rets.isEmpty())
 				{
 					IDLType retType = methType.rets.get(0);
@@ -243,7 +243,8 @@ public class JavaWriter {
 		}
 
 		if(idlType.getType() == Type.RECORD)
-		{			
+		{
+			name = context.claimTypeName(idlType, name);
 			TypeSpec recordSpec = this.generateRecord(context, name, idlType);
 			
 			JavaFile javaFile = JavaFile.builder(context.packageName, recordSpec)
@@ -254,7 +255,8 @@ public class JavaWriter {
 			return;	
 		}
 		if(idlType.getType() == Type.VARIANT)
-		{			
+		{
+			name = context.claimTypeName(idlType, name);
 			TypeSpec variantSpec = this.generateVariant(context, name, idlType);
 			
 			JavaFile javaFile = JavaFile.builder(context.packageName, variantSpec)
@@ -275,6 +277,7 @@ public class JavaWriter {
 		Map<Label, IDLType> types = idlType.getTypeMap();
 		
 		Set<Label> labels = types.keySet();
+		Set<String> fieldNames = new HashSet<>();
 		
 		for(Label label : labels)
 		{
@@ -285,11 +288,9 @@ public class JavaWriter {
 				
 				Type type = fieldType.getType();
 				
-				String fieldName = name;
+				String fieldName = JavaIdentifier.unique(this.normalizeVarName(name), fieldNames);
 				
 				this.setTypeName(context, fieldType, typeName + this.normalizeClassName(fieldName));
-				
-				fieldName = this.normalizeVarName(fieldName);
 							
 				TypeName fieldTypeName = this.toTypeName(fieldType, context.packageName, false);
 				
@@ -318,24 +319,22 @@ public class JavaWriter {
 		Map<Label, IDLType> types = idlType.getTypeMap();
 		
 		Set<Label> labels = types.keySet();
+		Set<String> enumNames = new HashSet<>();
+		Set<String> fieldNames = new HashSet<>();
 		
 		for(Label label : labels)
 		{
 			String name = label.toString();
 			if(name != null)
 			{
-				typeBuilder.addEnumConstant(name);
+				String enumName = JavaIdentifier.unique(JavaIdentifier.className(name), enumNames);
+				typeBuilder.addEnumConstant(enumName, TypeSpec.anonymousClassBuilder("")
+						.addAnnotation(AnnotationSpec.builder(Name.class).addMember("value", "$S", name).build())
+						.build());
 				
 				IDLType fieldType = types.get(label);
 						
-				String fieldName = name + "Value";
-				
-				fieldName = this.normalizeVarName(fieldName);
-				
-				if(name.equals("void"))
-					fieldName = "voidField";
-				if(name.equals("record"))
-					fieldName = "recordField";				
+				String fieldName = JavaIdentifier.unique(this.normalizeVarName(name + "Value"), fieldNames);
 				
 				if(fieldType != null)					
 				{					
@@ -464,7 +463,7 @@ public class JavaWriter {
 		{
 			if(idlType.getName() == null)
 			{	
-				idlType.setName(name);		
+				context.claimTypeName(idlType, name);
 				this.generateType(context, idlType);
 			}
 		}		
@@ -472,40 +471,16 @@ public class JavaWriter {
 	
 	String normalizeClassName(String name)
 	{
-		if(name == null)
-			return name;
-		
-		name = name.replaceFirst(name.substring(0, 1), name.substring(0, 1).toUpperCase());
-		
-		return name;
+		return JavaIdentifier.className(name);
 	}
 	
 	String normalizeVarName(String name)
 	{
-		if(name == null)
-			return name;
-		
-		if(name.equals("void"))
-			name = "voidField";
-		if(name.equals("record"))
-			name = "recordField";		
-		
-		if (!name.matches("^[a-zA-Z][a-zA-Z0-9]*?$")) 
-			 name = "field" + name;
-	
-		
-		name = name.replaceFirst(name.substring(0, 1), name.substring(0, 1).toLowerCase());
-		
-		return name;
+		return JavaIdentifier.memberName(name);
 	}
 	
 	String normalizeMethodName(String name)
 	{
-		if(name == null)
-			return name;
-		
-		name = name.replaceFirst(name.substring(0, 1), name.substring(0, 1).toLowerCase());
-		
-		return name;
+		return JavaIdentifier.memberName(name);
 	}	
 }

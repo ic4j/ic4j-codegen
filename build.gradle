@@ -7,16 +7,24 @@
  */
 
 plugins {
-	id 'java'
+	id 'java-library'
 	id 'eclipse'
+	id 'maven-publish'
+	id 'signing'
 }
 
 
+
 group 'org.ic4j'
-version '0.8.0'
+version '0.8.5'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
+
+java {
+	withSourcesJar()
+	withJavadocJar()
+}
 
 tasks.withType(JavaCompile).configureEach {
 	if (JavaVersion.current().isJava9Compatible()) {
@@ -48,8 +56,10 @@ task fatJar(type: Jar) {
     }
     
     archiveBaseName = 'ic4j-codegen-with-dependencies'
-    
-    from { configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+	exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
 }
 
@@ -64,10 +74,10 @@ dependencies {
 	compileOnly name: 'android-31'
 	compileOnly name: 'react-android-0.71.11'
 	
-	implementation group: 'org.ic4j', name: 'ic4j-reactnative', version: '0.8.0'
-	implementation group: 'org.ic4j', name: 'ic4j-agent', version: '0.8.0'		
-	implementation group: 'org.ic4j', name: 'ic4j-candid', version: '0.8.1'
-	implementation group: 'org.ic4j', name: 'ic4j-spring', version: '0.8.0'
+	api group: 'org.ic4j', name: 'ic4j-reactnative', version: '0.8.0'
+	api group: 'org.ic4j', name: 'ic4j-agent', version: '0.8.5'
+	api group: 'org.ic4j', name: 'ic4j-candid', version: '0.8.5'
+	api group: 'org.ic4j', name: 'ic4j-spring', version: '0.8.0'
 	
 	// https://mvnrepository.com/artifact/commons-codec/commons-codec
 	implementation group: 'commons-codec', name: 'commons-codec', version: '1.21.0'
@@ -76,22 +86,23 @@ dependencies {
 	implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.20.0'
 	
 	// https://mvnrepository.com/artifact/org.springframework/spring-context
-	implementation group: 'org.springframework', name: 'spring-context', version: '5.3.39'
+	api group: 'org.springframework', name: 'spring-context', version: '5.3.39'
 	
-	// https://mvnrepository.com/artifact/jakarta.annotation/jakarta.annotation-api
-	implementation group: 'jakarta.annotation', name: 'jakarta.annotation-api', version: '3.0.0'	
+	// Spring 5 generated services use javax.annotation.PostConstruct.
+	api group: 'javax.annotation', name: 'javax.annotation-api', version: '1.3.2'
 	
 	// JAXB dependencies
     implementation group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.1'	
 
 	// https://mvnrepository.com/artifact/com.squareup/javapoet
-	implementation group: 'com.squareup', name: 'javapoet', version: '1.13.0'
+	api group: 'com.squareup', name: 'javapoet', version: '1.13.0'
 	
 	// https://mvnrepository.com/artifact/org.apache.ws.xmlschema/xmlschema-core
 	implementation group: 'org.apache.ws.xmlschema', name: 'xmlschema-core', version: '2.3.2'
 	
 	// https://mvnrepository.com/artifact/org.slf4j/slf4j-simple
-	implementation group: 'org.slf4j', name: 'slf4j-simple', version: '2.0.17'
+	implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.17'
+	runtimeOnly group: 'org.slf4j', name: 'slf4j-simple', version: '2.0.17'
 	
 	// https://mvnrepository.com/artifact/info.picocli/picocli
 	implementation group: 'info.picocli', name: 'picocli', version: '4.7.7'
@@ -117,3 +128,80 @@ dependencies {
 				
 }
 
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			from components.java
+			pom {
+				name = 'IC4J Codegen'
+				description = 'Java and React Native code generators for Internet Computer Candid services.'
+				url = 'https://github.com/ic4j/ic4j-codegen'
+				licenses {
+					license {
+						name = 'The Apache License, Version 2.0'
+						url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
+					}
+				}
+				developers {
+					developer {
+						id = 'ic4j'
+						name = 'IC4J contributors'
+					}
+				}
+				scm {
+					connection = 'scm:git:https://github.com/ic4j/ic4j-codegen.git'
+					developerConnection = 'scm:git:ssh://git@github.com/ic4j/ic4j-codegen.git'
+					url = 'https://github.com/ic4j/ic4j-codegen'
+				}
+			}
+		}
+	}
+	repositories {
+		if (providers.gradleProperty('releaseRepositoryUrl').isPresent()) {
+			maven {
+				name = 'release'
+				url = uri(providers.gradleProperty('releaseRepositoryUrl').get())
+				credentials {
+					username = providers.gradleProperty('releaseRepositoryUsername')
+							.orElse(providers.environmentVariable('CENTRAL_PORTAL_USERNAME')).getOrElse('')
+					password = providers.gradleProperty('releaseRepositoryPassword')
+							.orElse(providers.environmentVariable('CENTRAL_PORTAL_PASSWORD')).getOrElse('')
+				}
+			}
+		}
+	}
+}
+
+signing {
+	def signingKey = providers.environmentVariable('SIGNING_KEY').orNull
+	def signingPassword = providers.environmentVariable('SIGNING_PASSWORD').orNull
+	if (signingKey)
+		useInMemoryPgpKeys(signingKey, signingPassword)
+	sign publishing.publications.mavenJava
+	required {
+		gradle.taskGraph.allTasks.any {
+			it.name.startsWith('publish') && it.name.endsWith('Repository') && !it.name.contains('MavenLocal')
+		}
+	}
+}
+
+tasks.withType(Sign).configureEach {
+	onlyIf {
+		gradle.taskGraph.allTasks.any {
+			it.name.startsWith('publish') && it.name.endsWith('Repository') && !it.name.contains('MavenLocal')
+		}
+	}
+}
+
+tasks.register('compileGeneratedTestSources', JavaCompile) {
+	dependsOn test
+	source fileTree('build/generated/test-sources') {
+		include '**/*.java'
+	}
+	classpath = sourceSets.test.runtimeClasspath
+	destinationDirectory = layout.buildDirectory.dir('classes/java/generatedTest')
+	if (JavaVersion.current().isJava9Compatible())
+		options.release = 8
+}
+
+check.dependsOn tasks.named('compileGeneratedTestSources')

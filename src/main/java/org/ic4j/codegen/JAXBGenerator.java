@@ -57,6 +57,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import javax.xml.XMLConstants;
 
 
 public abstract class JAXBGenerator {
@@ -69,9 +70,10 @@ public abstract class JAXBGenerator {
 		this.typeWriter = typeWriter;
 	}
 
-	public void writeTypes(String dictionaryFileName, String outDir)
+	public void writeTypes(String dictionaryFileName, String outDir) throws CodegenException
 	{
 		Document xmlDocument;
+		int failures = 0;
 		try {
 			xmlDocument = getDocument(dictionaryFileName);
 			final long timeoutMs = Long.getLong("ic4j.codegen.writeTypeTimeoutMs", 0L);
@@ -113,22 +115,32 @@ public abstract class JAXBGenerator {
 					long elapsed = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
 					LOG.info(String.format("[%d/%d] Generated %s in %d ms", i + 1, messageElements.getLength(), typeFileName, elapsed));
 				} catch (StackOverflowError e) {
-					LOG.error(String.format("Skipped recursive type graph for %s while generating %s", className, typeFileName));
+					failures++;
+					LOG.error(String.format("Skipped recursive type graph for %s while generating %s", className, typeFileName), e);
 				} catch (ClassNotFoundException e) {
+					failures++;
 					LOG.error(String.format("Failed to load type class %s for %s", className, typeFileName), e);
-				} catch (InterruptedException | ExecutionException | TimeoutException e) {
-					LOG.error(String.format("Timed out or interrupted while generating %s into %s", className, typeFileName), e);
-				} catch (RuntimeException e) {
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+					throw new CodegenException("Interrupted while generating " + typeFileName, e);
+				} catch (ExecutionException | TimeoutException e) {
+					failures++;
+					LOG.error(String.format("Failed or timed out while generating %s into %s", className, typeFileName), e);
+				} catch (IOException | RuntimeException e) {
+					failures++;
 					LOG.error(String.format("Failed to generate type for %s into %s", className, typeFileName), e);
 				}			
 			}			
 						
 		} catch (SAXException | IOException | ParserConfigurationException | XPathExpressionException e) {
-			LOG.error(e.getLocalizedMessage(), e);
-		}  	
+			throw new CodegenException("Cannot generate types from dictionary " + dictionaryFileName, e);
+		}
+
+		if(failures > 0)
+			throw new CodegenException("Failed to generate " + failures + " type file(s)");
 	}
 	
-	public abstract void writeType(Class<?> type, String outDir, String fileName);
+	public abstract void writeType(Class<?> type, String outDir, String fileName) throws IOException;
 
 	void writeTypeWithTimeout(final Class<?> type, final String outDir, final String fileName, final long timeoutMs)
 			throws InterruptedException, ExecutionException, TimeoutException
@@ -146,7 +158,12 @@ public abstract class JAXBGenerator {
 				return null;
 			};
 			Future<Void> future = executor.submit(task);
-			future.get(timeoutMs, TimeUnit.MILLISECONDS);
+			try {
+				future.get(timeoutMs, TimeUnit.MILLISECONDS);
+			} catch (TimeoutException e) {
+				future.cancel(true);
+				throw e;
+			}
 		} finally {
 			executor.shutdownNow();
 		}
@@ -171,12 +188,18 @@ public abstract class JAXBGenerator {
 	
     static Document getDocument(String fileName) throws SAXException, IOException, ParserConfigurationException
     {
-    	FileInputStream fileInputStream = new FileInputStream(fileName);
     	DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+		builderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+		builderFactory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+		builderFactory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+		builderFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+		builderFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+		builderFactory.setXIncludeAware(false);
+		builderFactory.setExpandEntityReferences(false);
     	DocumentBuilder builder = builderFactory.newDocumentBuilder();
-    	Document xmlDocument = builder.parse(fileInputStream);
-		
-    	return xmlDocument;
+		try (FileInputStream fileInputStream = new FileInputStream(fileName)) {
+			return builder.parse(fileInputStream);
+		}
     }
 	void logTypeGraph(Class<?> rootType, int maxDepth)
 	{

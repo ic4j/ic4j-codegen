@@ -6,20 +6,20 @@ Java library and CLI to generate Internet Computer artifacts.
 
 To add IC4J Codegen to your Java project, use Maven Central.
 
-<a href="https://search.maven.org/artifact/org.ic4j/ic4j-codegen/0.8.0/jar">
-https://search.maven.org/artifact/org.ic4j/ic4j-codegen/0.8.0/jar
+<a href="https://search.maven.org/artifact/org.ic4j/ic4j-codegen/0.8.5/jar">
+https://search.maven.org/artifact/org.ic4j/ic4j-codegen/0.8.5/jar
 </a>
 
 ```xml
 <dependency>
   <groupId>org.ic4j</groupId>
   <artifactId>ic4j-codegen</artifactId>
-  <version>0.8.0</version>
+  <version>0.8.5</version>
 </dependency>
 ```
 
 ```gradle
-implementation 'org.ic4j:ic4j-codegen:0.8.0'
+implementation 'org.ic4j:ic4j-codegen:0.8.5'
 ```
 
 ## Build
