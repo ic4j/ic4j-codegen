@@ -30,6 +30,10 @@ public class JakartaJAXBGenerator extends JAXBGenerator {
 
 	public static void main(String[] args) 
 	{
+		if(args.length < 2) {
+			System.err.println("Usage: JakartaJAXBGenerator <dictionary-file> <output-dir> [convert-name]");
+			System.exit(2);
+		}
 		
 		MotokoWriter motokoWriter =  new MotokoWriter();
 		
@@ -44,7 +48,12 @@ public class JakartaJAXBGenerator extends JAXBGenerator {
 		
 		JAXBGenerator jaxbGenerator = new JakartaJAXBGenerator(motokoWriter );
 		
-		jaxbGenerator.writeTypes(args[0], args[1]);
+		try {
+			jaxbGenerator.writeTypes(args[0], args[1]);
+		} catch (CodegenException e) {
+			LOG.error(e.getMessage(), e);
+			System.exit(1);
+		}
 	}
 	
 	public JakartaJAXBGenerator(TypeWriter typeWriter) {
@@ -53,19 +62,12 @@ public class JakartaJAXBGenerator extends JAXBGenerator {
 
 	
 	@Override
-	public void writeType(Class<?> type, String outDir, String fileName)
+	public void writeType(Class<?> type, String outDir, String fileName) throws IOException
 	{
-
-		
 		IDLType idlType = JAXBUtils.getIDLType(type);
-		try {
-			if(Files.notExists(Paths.get(outDir)))
-				Files.createDirectories(Paths.get(outDir));
-			
-			typeWriter.writeFile(Paths.get(outDir,fileName), idlType);
-		} catch (IOException e) {
-			LOG.error(e.getLocalizedMessage(), e);
-		}
+		if(Files.notExists(Paths.get(outDir)))
+			Files.createDirectories(Paths.get(outDir));
+		typeWriter.writeFile(Paths.get(outDir,fileName), idlType);
 	}
 	
 

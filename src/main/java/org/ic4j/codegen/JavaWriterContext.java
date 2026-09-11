@@ -17,9 +17,13 @@
 package org.ic4j.codegen;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import com.squareup.javapoet.JavaFile;
+import org.ic4j.candid.parser.IDLType;
 
 public class JavaWriterContext extends TypeWriterContext {
 	public String packageName;
@@ -37,4 +41,18 @@ public class JavaWriterContext extends TypeWriterContext {
 	Map<String, JavaFile> proxies = new HashMap<>();
 	
 	Map<String, JavaFile> types = new HashMap<>();
+
+	private final Map<IDLType, String> typeNames = new IdentityHashMap<>();
+	private final Set<String> usedTypeNames = new HashSet<>();
+
+	String claimTypeName(IDLType type, String suggestedName) {
+		String existing = typeNames.get(type);
+		if(existing != null)
+			return existing;
+
+		String typeName = JavaIdentifier.unique(JavaIdentifier.className(suggestedName), usedTypeNames);
+		typeNames.put(type, typeName);
+		type.setName(typeName);
+		return typeName;
+	}
 }

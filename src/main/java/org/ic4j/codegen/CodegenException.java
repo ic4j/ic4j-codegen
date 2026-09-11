@@ -7,4 +7,8 @@ public class CodegenException extends Exception {
 		super(message);
 	}
 
+	public CodegenException(String message, Throwable cause)
+	{
+		super(message, cause);
+	}
 }

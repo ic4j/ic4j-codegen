@@ -7,6 +7,8 @@ import org.ic4j.codegen.JavaWriterContext;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -96,5 +98,30 @@ public class JavaWriterTest {
 
 		javaWriter.write(javaWriterContext, OUTPUT_DIR, proxyClassName, types, services);
 
+	}
+
+	@Test
+	public void testReservedObjectMethodNames() throws IOException {
+		Path outputDir = OUTPUT_DIR.resolve("reserved");
+		Files.createDirectories(outputDir);
+
+		IDLParser idlParser = new IDLParser(new StringReader("service : { getClass: () -> (); wait: () -> (); };"));
+		idlParser.parse();
+
+		JavaWriter javaWriter = new JavaWriter();
+
+		JavaWriterContext javaWriterContext = new JavaWriterContext();
+		javaWriterContext.packageName = "test.reserved";
+
+		javaWriter.useFuture = false;
+		javaWriter.write(javaWriterContext, outputDir, "ReservedProxy", idlParser.getTypes(), idlParser.getServices());
+
+		String generatedProxy = new String(
+				Files.readAllBytes(outputDir.resolve(Paths.get("test", "reserved", "ReservedProxy.java"))),
+				StandardCharsets.UTF_8);
+		Assertions.assertTrue(generatedProxy.contains("void getClassValue()"));
+		Assertions.assertTrue(generatedProxy.contains("void waitValue()"));
+		Assertions.assertFalse(generatedProxy.contains("void getClass()"));
+		Assertions.assertFalse(generatedProxy.contains("void wait()"));
 	}
 }

@@ -91,6 +91,7 @@ public class SwiftTest {
 			
 		} catch (Exception e) {
 			LOG.error(e.getLocalizedMessage(), e);
+			Assertions.fail(e.getLocalizedMessage());
 		}
 
 	}

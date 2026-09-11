@@ -7,6 +7,8 @@ import org.ic4j.codegen.SpringWriterContext;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -95,5 +97,30 @@ public class SpringWriterTest {
 		springWriter.useFuture = true;
 
 		springWriter.write(springWriterContext, OUTPUT_DIR, serviceClassName, proxyClassName, types, services);
+	}
+
+	@Test
+	public void testNormalizedProxyNameAndReservedInitMethod() throws IOException {
+		Path outputDir = OUTPUT_DIR.resolve("reserved");
+		Files.createDirectories(outputDir);
+
+		IDLParser idlParser = new IDLParser(new StringReader("service : { init: () -> (); };"));
+		idlParser.parse();
+
+		SpringWriter springWriter = new SpringWriter();
+
+		SpringWriterContext springWriterContext = new SpringWriterContext();
+		springWriterContext.packageName = "org.ic4j.spring.reserved";
+
+		springWriter.useFuture = true;
+		springWriter.write(springWriterContext, outputDir, "foo-bar", "class", idlParser.getTypes(), idlParser.getServices());
+
+		String generatedService = new String(
+				Files.readAllBytes(outputDir.resolve(Paths.get("org", "ic4j", "spring", "reserved", "FooBar.java"))),
+				StandardCharsets.UTF_8);
+		Assertions.assertTrue(generatedService.contains("implements Class"));
+		Assertions.assertTrue(generatedService.contains("super.init(Class.class"));
+		Assertions.assertTrue(generatedService.contains("void initializeAgent()"));
+		Assertions.assertTrue(generatedService.contains("CompletableFuture<Void> init()"));
 	}
 }

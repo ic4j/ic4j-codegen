@@ -27,6 +27,7 @@ import java.security.NoSuchAlgorithmException;
 
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.HashSet;
 import java.util.Set;
 
 import com.facebook.react.bridge.Promise;
@@ -66,11 +67,9 @@ public class ReactNativeWriter {
 	{				
 		javaWriterContext.writer = new StringWriter();	
 		
-		ReactNativeWriter javaWriter = new ReactNativeWriter();		
-		
 		for(IDLType idlType : services.values())
 		{
-			javaWriter.generateModule(javaWriterContext,proxyName, idlType);		
+			this.generateModule(javaWriterContext,proxyName, idlType);
 		}		
 			
 		
@@ -79,7 +78,8 @@ public class ReactNativeWriter {
 		for(String key : keys)
 		{
 			JavaFile javaFile = javaWriterContext.proxies.get(key);
-			javaFile.writeTo(System.out);
+			if(javaWriterContext.verbose)
+				javaFile.writeTo(System.out);
 			javaFile.writeTo(path);	
 		}
 			
@@ -123,11 +123,11 @@ public class ReactNativeWriter {
 				IdentityType identityType = IdentityType.ANONYMOUS;
 				if(context.identityType != null)
 				{
-					switch(context.identityType)
+					switch(context.identityType.toLowerCase(java.util.Locale.ROOT))
 					{
-						case "Basic" : identityType = IdentityType.BASIC;break;
-						case "Secp256k1" : identityType = IdentityType.SECP256K1;break;
-						case "Prime256v1" : identityType = IdentityType.PRIME256V1;break;
+						case "basic" : identityType = IdentityType.BASIC;break;
+						case "secp256k1" : identityType = IdentityType.SECP256K1;break;
+						case "prime256v1" : identityType = IdentityType.PRIME256V1;break;
 					}
 				}
 				
@@ -149,6 +149,7 @@ public class ReactNativeWriter {
 		Map<String,IDLType> meths = idlType.getMeths();
 		
 		Set<String> names = meths.keySet();
+		Set<String> methodNames = new HashSet<>();
 		
 		for(String name : names)
 		{
@@ -158,10 +159,7 @@ public class ReactNativeWriter {
 				
 				String funcName = name;
 				
-				funcName = this.normalizeVarName(funcName);
-				
-				if(name.equals("void"))
-					funcName = "voidFunc";
+				funcName = JavaIdentifier.unique(this.normalizeVarName(funcName), methodNames);
 				
 				MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(funcName)
 						.addAnnotation(AnnotationSpec.builder(ReactMethod.class).build())
@@ -175,7 +173,7 @@ public class ReactNativeWriter {
 					{
 						String argName = "arg" + i++;
 						
-						args += "," + argName;
+						args += ",(Object) " + argName;
 						
 						TypeName typeName = this.toTypeName(argType);					
 						
@@ -183,35 +181,23 @@ public class ReactNativeWriter {
 					}
 				}
 				
-				String responseClass = "Void.class";
+				Class responseClass = Void.class;
 				
+				if(methType.rets.size() > 1)
+					throw new IOException("React Native generation does not support multiple return values for method " + name);
 				if(!methType.rets.isEmpty())
 				{
 					IDLType retType = methType.rets.get(0);
-					
-					if(retType.getType() == Type.OPT)
-						retType = idlType.getInnerType();								
-
-					if(retType != null)
-						responseClass = this.toTypeClass(retType.getType()).getSimpleName() + ".class";								
+					responseClass = this.toResponseClass(retType);
 				}			
 				
-				
-				if(!methType.modes.isEmpty())
-				{	
-					if(methType.modes.get(0) == Mode.QUERY)
-					{
-						methodBuilder.addStatement("this.query(promise,\"$N\"," + responseClass + args + ")",funcName);
-					}
-					else if(methType.modes.get(0) == Mode.ONEWAY)
-					{
-						methodBuilder.addStatement("this.oneway(promise,\"$N\"" + args + ")",funcName);
-					}
-					else
-					{
-						methodBuilder.addStatement("this.update(promise,\"$N\"," + responseClass + args + ")",funcName);
-					}
-				}
+				Mode mode = methType.modes.isEmpty() ? null : methType.modes.get(0);
+				if(mode == Mode.QUERY)
+					methodBuilder.addStatement("this.query(promise,$S,$T.class" + args + ")",name, responseClass);
+				else if(mode == Mode.ONEWAY)
+					methodBuilder.addStatement("this.oneway(promise,$S" + args + ")",name);
+				else
+					methodBuilder.addStatement("this.update(promise,$S,$T.class" + args + ")",name, responseClass);
 				
 				methodBuilder.addParameter(ParameterSpec.builder(Promise.class, "promise").build());
 				
@@ -313,31 +299,29 @@ public class ReactNativeWriter {
 			default:
 				throw ParserError.create(ParserError.ParserErrorCode.CUSTOM, String.format("Unknown type %s", type));
 			}
-					
+	}
+
+	Class toResponseClass(IDLType idlType)
+	{
+		while(idlType != null && idlType.getType() == Type.OPT)
+			idlType = idlType.getInnerType();
+		if(idlType == null)
+			return Void.class;
+		if(idlType.getType() == Type.VEC)
+		{
+			IDLType innerType = idlType.getInnerType();
+			return innerType != null && innerType.getType() == Type.NAT8 ? String.class : ReadableArray.class;
+		}
+		return this.toTypeClass(idlType.getType());
 	}
 	
 	String normalizeClassName(String name)
 	{
-		if(name == null)
-			return name;
-		
-		name = name.replaceFirst(name.substring(0, 1), name.substring(0, 1).toUpperCase());
-		
-		return name;
+		return JavaIdentifier.className(name);
 	}
 	
 	String normalizeVarName(String name)
 	{
-		if(name.equals("void"))
-			name = "voidField";
-		if(name.equals("record"))
-			name = "recordField";
-		
-		if(name == null)
-			return name;
-		
-		name = name.replaceFirst(name.substring(0, 1), name.substring(0, 1).toLowerCase());
-		
-		return name;
+		return JavaIdentifier.methodName(name);
 	}	
 }

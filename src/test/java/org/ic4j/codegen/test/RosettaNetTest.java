@@ -126,6 +126,7 @@ public class RosettaNetTest {
 			
 		} catch (Exception e) {
 			LOG.error(e.getLocalizedMessage(), e);
+			Assertions.fail(e.getLocalizedMessage());
 		}
 
 	}

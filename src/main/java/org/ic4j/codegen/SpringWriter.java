@@ -41,20 +41,15 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
 public class SpringWriter extends JavaWriter {
-	public boolean useList = false;
-	public boolean useFuture = true;
-	
 	public void write(SpringWriterContext springWriterContext, Path path, String serviceName,  String proxyName, Map<String,IDLType> types, Map<String,IDLType> services) throws IOException
 	{				
 		super.write(springWriterContext, path, proxyName, types, services);
-		
-		SpringWriter springWriter = new SpringWriter();
 		
 		Set<String> keys = springWriterContext.services.keySet(); 
 		
 		for(IDLType idlType : services.values())
 		{
-			springWriter.generateService(springWriterContext,serviceName, proxyName, idlType);		
+			this.generateService(springWriterContext,serviceName, proxyName, idlType);
 		}
 		
 		for(String key : keys)
@@ -79,26 +74,39 @@ public class SpringWriter extends JavaWriter {
 		
 		serviceBuilder.superclass(ClassName.get(org.ic4j.spring.Service.class));
 		
-		serviceBuilder.addSuperinterface(ClassName.get(context.packageName, proxyName));
+		serviceBuilder.addSuperinterface(ClassName.get(context.packageName, this.normalizeClassName(proxyName)));
+
+		MethodSpec constructor = MethodSpec.constructorBuilder()
+				.addModifiers(Modifier.PUBLIC)
+				.addParameter(ClassName.get("org.springframework.core.io", "ResourceLoader"), "resourceLoader")
+				.addStatement("super(resourceLoader)")
+				.build();
+		serviceBuilder.addMethod(constructor);
+
+		Map<String,IDLType> meths = idlType.getMeths();
+		Set<String> names = meths.keySet();
+		Map<String,String> generatedMethodNames = new java.util.HashMap<>();
+		Set<String> methodNames = new java.util.HashSet<>();
+		for(String name : names)
+			if(name != null)
+				generatedMethodNames.put(name,
+						JavaIdentifier.unique(this.normalizeMethodName(name), methodNames));
+		String lifecycleMethodName = JavaIdentifier.unique("initializeAgent", methodNames);
 		
-		MethodSpec.Builder initMethodBuilder = MethodSpec.methodBuilder("init")
+		MethodSpec.Builder initMethodBuilder = MethodSpec.methodBuilder(lifecycleMethodName)
 				.addModifiers(Modifier.PUBLIC);
 		
 		initMethodBuilder.addException(IOException.class);
 		initMethodBuilder.addException(URISyntaxException.class);
 		
-		initMethodBuilder.addAnnotation(ClassName.get("jakarta.annotation","PostConstruct"));
+		initMethodBuilder.addAnnotation(ClassName.get("javax.annotation","PostConstruct"));
 		
 //		initMethodBuilder.addAnnotation(AnnotationSpec.builder(PostConstruct.class).build());
 		
-		initMethodBuilder.addStatement("super.init($N ,null, null, null, null)",ClassName.get(context.packageName, proxyName) + ".class");
+		initMethodBuilder.addStatement("super.init($T.class, null, null, null, null)",
+				ClassName.get(context.packageName, this.normalizeClassName(proxyName)));
 		
 		serviceBuilder.addMethod(initMethodBuilder.build());
-
-		Map<String,IDLType> meths = idlType.getMeths();
-		
-		Set<String> names = meths.keySet();
-		
 
 		for(String name : names)
 		{
@@ -106,12 +114,7 @@ public class SpringWriter extends JavaWriter {
 			{
 				IDLType methType = meths.get(name);
 				
-				String funcName = name;
-				
-				funcName = this.normalizeMethodName(funcName);
-				
-				if(name.equals("void"))
-					funcName = "voidFunc";
+				String funcName = generatedMethodNames.get(name);
 				
 				MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(funcName)
 						.addModifiers(Modifier.PUBLIC);
@@ -139,7 +142,7 @@ public class SpringWriter extends JavaWriter {
 					{
 						String argName = "arg" + i++;
 						
-						args += "," + argName;
+						args += ",(Object) " + argName;
 						
 						this.setTypeName(context, argType, this.normalizeClassName(funcName) + this.normalizeClassName(argName));
 						
@@ -154,6 +157,8 @@ public class SpringWriter extends JavaWriter {
 					}
 				}
 				
+				if(methType.rets.size() > 1)
+					throw new IOException("Spring generation does not support multiple return values for method " + name);
 				if(!methType.rets.isEmpty())
 				{
 					IDLType retType = methType.rets.get(0);
@@ -164,10 +169,10 @@ public class SpringWriter extends JavaWriter {
 					
 					methodBuilder.returns(typeName);
 					
-					if(isFuture)
+					if(isFuture && this.useFuture)
 						methodBuilder.addAnnotation(AnnotationSpec.builder(Async.class).build());
 					
-					methodBuilder.addStatement("return this.call(\"$N\"" + args + ")",funcName);
+					methodBuilder.addStatement("return this.call($S" + args + ")",name);
 				}
 				else if(isFuture && this.useFuture)
 				{
@@ -176,10 +181,10 @@ public class SpringWriter extends JavaWriter {
 					methodBuilder.returns(futureTypeName);
 					methodBuilder.addAnnotation(AnnotationSpec.builder(Async.class).build());
 					
-					methodBuilder.addStatement("return this.call(\"$N\"" + args + ")",funcName);
+					methodBuilder.addStatement("return this.call($S" + args + ")",name);
 				}
 				else
-					methodBuilder.addStatement("this.call(\"$N\"" + args + ")",funcName);
+					methodBuilder.addStatement("this.call($S" + args + ")",name);
 				
 				
 				
