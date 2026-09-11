@@ -8,6 +8,7 @@ import org.ic4j.codegen.JavaWriterContext;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -115,7 +116,9 @@ public class JavaWriterTest {
 		javaWriter.useFuture = false;
 		javaWriter.write(javaWriterContext, outputDir, "ReservedProxy", idlParser.getTypes(), idlParser.getServices());
 
-		String generatedProxy = Files.readString(outputDir.resolve(Paths.get("test", "reserved", "ReservedProxy.java")));
+		String generatedProxy = new String(
+				Files.readAllBytes(outputDir.resolve(Paths.get("test", "reserved", "ReservedProxy.java"))),
+				StandardCharsets.UTF_8);
 		Assertions.assertTrue(generatedProxy.contains("void getClassValue()"));
 		Assertions.assertTrue(generatedProxy.contains("void waitValue()"));
 		Assertions.assertFalse(generatedProxy.contains("void getClass()"));

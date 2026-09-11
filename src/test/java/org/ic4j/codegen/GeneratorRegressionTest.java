@@ -101,7 +101,8 @@ class GeneratorRegressionTest {
 		String service = readGenerated("test/spring/ReservedService.java");
 		assertTrue(service.contains("implements FooBar"), service);
 		assertTrue(service.contains("super.init(FooBar.class, null, null, null, null)"), service);
-		assertTrue(service.contains("String init2()"), service);
+		assertTrue(service.contains("void initializeAgent()"), service);
+		assertTrue(service.contains("String init()"), service);
 		assertFalse(service.contains("@Async"), service);
 	}
 

@@ -82,8 +82,18 @@ public class SpringWriter extends JavaWriter {
 				.addStatement("super(resourceLoader)")
 				.build();
 		serviceBuilder.addMethod(constructor);
+
+		Map<String,IDLType> meths = idlType.getMeths();
+		Set<String> names = meths.keySet();
+		Map<String,String> generatedMethodNames = new java.util.HashMap<>();
+		Set<String> methodNames = new java.util.HashSet<>();
+		for(String name : names)
+			if(name != null)
+				generatedMethodNames.put(name,
+						JavaIdentifier.unique(this.normalizeMethodName(name), methodNames));
+		String lifecycleMethodName = JavaIdentifier.unique("initializeAgent", methodNames);
 		
-		MethodSpec.Builder initMethodBuilder = MethodSpec.methodBuilder("init")
+		MethodSpec.Builder initMethodBuilder = MethodSpec.methodBuilder(lifecycleMethodName)
 				.addModifiers(Modifier.PUBLIC);
 		
 		initMethodBuilder.addException(IOException.class);
@@ -98,22 +108,13 @@ public class SpringWriter extends JavaWriter {
 		
 		serviceBuilder.addMethod(initMethodBuilder.build());
 
-		Map<String,IDLType> meths = idlType.getMeths();
-		
-		Set<String> names = meths.keySet();
-		Set<String> methodNames = new java.util.HashSet<>();
-		methodNames.add("init");
-		
-
 		for(String name : names)
 		{
 			if(name != null)
 			{
 				IDLType methType = meths.get(name);
 				
-				String funcName = name;
-				
-				funcName = JavaIdentifier.unique(this.normalizeMethodName(funcName), methodNames);
+				String funcName = generatedMethodNames.get(name);
 				
 				MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(funcName)
 						.addModifiers(Modifier.PUBLIC);
