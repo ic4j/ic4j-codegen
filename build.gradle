@@ -85,16 +85,16 @@ dependencies {
 	compileOnly name: 'android-31'
 	compileOnly name: 'react-android-0.71.11'
 	
-	api group: 'org.ic4j', name: 'ic4j-reactnative', version: '0.8.0'
+	api group: 'org.ic4j', name: 'ic4j-reactnative', version: '0.8.5'
 	api group: 'org.ic4j', name: 'ic4j-agent', version: '0.8.5'
 	api group: 'org.ic4j', name: 'ic4j-candid', version: '0.8.5'
-	api group: 'org.ic4j', name: 'ic4j-spring', version: '0.8.0'
+	api group: 'org.ic4j', name: 'ic4j-spring', version: '0.8.5'
 	
 	// https://mvnrepository.com/artifact/commons-codec/commons-codec
-	implementation group: 'commons-codec', name: 'commons-codec', version: '1.21.0'
+	implementation group: 'commons-codec', name: 'commons-codec', version: '1.23.0'
 	
 	// https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
-	implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.20.0'
+	implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.21.0'
 	
 	// https://mvnrepository.com/artifact/org.springframework/spring-context
 	api group: 'org.springframework', name: 'spring-context', version: '5.3.39'
@@ -112,8 +112,8 @@ dependencies {
 	implementation group: 'org.apache.ws.xmlschema', name: 'xmlschema-core', version: '2.3.2'
 	
 	// https://mvnrepository.com/artifact/org.slf4j/slf4j-simple
-	implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.17'
-	runtimeOnly group: 'org.slf4j', name: 'slf4j-simple', version: '2.0.17'
+	implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.20'
+	runtimeOnly group: 'org.slf4j', name: 'slf4j-simple', version: '2.0.20'
 	
 	// https://mvnrepository.com/artifact/info.picocli/picocli
 	implementation group: 'info.picocli', name: 'picocli', version: '4.7.7'
@@ -129,13 +129,13 @@ dependencies {
 	testImplementation group: 'com.prowidesoftware', name: 'pw-iso20022', version: 'SRU2025-10.3.5'		
 	
 	// https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
-	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.12.2'
+	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.14.4'
 
 	// https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine
-	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.12.2'
+	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.14.4'
 
 	// https://mvnrepository.com/artifact/org.junit.platform/junit-platform-launcher
-	testImplementation group: 'org.junit.platform', name: 'junit-platform-launcher', version: '1.12.2'
+	testImplementation group: 'org.junit.platform', name: 'junit-platform-launcher', version: '1.14.4'
 				
 }
 
@@ -143,6 +143,7 @@ publishing {
 	publications {
 		mavenJava(MavenPublication) {
 			from components.java
+			artifactId = 'ic4j-codegen'
 			pom {
 				name = 'IC4J Codegen'
 				description = 'Java and React Native code generators for Internet Computer Candid services.'
