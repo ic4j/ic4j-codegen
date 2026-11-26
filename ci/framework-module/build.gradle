@@ -1,0 +1,97 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+def target = providers.gradleProperty('moduleTarget').get()
+def isSpring = target == 'spring'
+if (!isSpring && target != 'reactnative') {
+    throw new GradleException("Unsupported framework: " + target)
+}
+
+group = 'org.ic4j.generated'
+version = providers.gradleProperty('moduleVersion').get()
+def bundleRepo = layout.projectDirectory.dir('maven-repository')
+
+repositories {
+    exclusiveContent {
+        forRepository { maven { url = bundleRepo } }
+        filter { includeGroup('org.ic4j') }
+    }
+    mavenCentral()
+}
+
+dependencies {
+    api 'org.ic4j:ic4j-agent:0.8.5'
+    api 'org.ic4j:ic4j-candid:0.8.5'
+    if (isSpring) {
+        api 'org.ic4j:ic4j-spring:0.8.5'
+        api 'org.springframework:spring-context:5.3.39'
+        api 'javax.annotation:javax.annotation-api:1.3.2'
+    } else {
+        api 'org.ic4j:ic4j-reactnative:0.8.5'
+        runtimeOnly 'org.slf4j:slf4j-api:2.0.20'
+        // The host app provides React Android; do not embed React/Android stubs.
+        compileOnly files(providers.gradleProperty('androidApiJar').get())
+        compileOnly files(providers.gradleProperty('reactAndroidJar').get())
+    }
+}
+
+tasks.withType(JavaCompile).configureEach { options.release = 8 }
+tasks.withType(AbstractArchiveTask).configureEach {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+
+java { withSourcesJar() }
+
+def aar = tasks.register('androidArchive', Zip) {
+    onlyIf { !isSpring }
+    archiveExtension = 'aar'
+    destinationDirectory = layout.buildDirectory.dir('libs')
+    from('AndroidManifest.xml')
+    from(tasks.named('jar').flatMap { it.archiveFile }) {
+        rename { 'classes.jar' }
+    }
+}
+
+publishing {
+    publications {
+        module(MavenPublication) {
+            from components.java
+            if (!isSpring) {
+                // Match the Android host's expected packaging. No JVM variant
+                // model is published for this resource-free Android library.
+                artifacts = [aar.get(), tasks.named('sourcesJar').get()]
+                pom.packaging = 'aar'
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = 'Bundle'
+            url = bundleRepo
+        }
+    }
+}
+tasks.withType(GenerateModuleMetadata).configureEach {
+    enabled = isSpring
+}
+
+// Verify the published binary (not build/classes or the fat Codegen CLI).
+def published = bundleRepo.file("org/ic4j/generated/${project.name}/${project.version}/${project.name}-${project.version}." + (isSpring ? 'jar' : 'aar'))
+def unpack = tasks.register('unpackConsumerAar', Copy) {
+    onlyIf { !isSpring }
+    dependsOn tasks.named('publish')
+    from { zipTree(published.asFile) }
+    include 'classes.jar'
+    into layout.buildDirectory.dir('consumer-aar')
+}
+tasks.register('verifyConsumer', JavaCompile) {
+    dependsOn tasks.named('publish')
+    source fileTree('consumer') { include '**/*.java' }
+    if (!isSpring) dependsOn unpack
+    def binary = isSpring ? published : layout.buildDirectory.file('consumer-aar/classes.jar')
+    classpath = files(binary) + configurations.compileClasspath
+    destinationDirectory = layout.buildDirectory.dir('consumer-classes')
+}
