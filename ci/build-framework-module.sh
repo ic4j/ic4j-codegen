@@ -13,7 +13,7 @@ cp "$root/ci/framework-module/"*.gradle "$out/"
 cp "$input/sources.txt" "$root/LICENSE" "$out/"
 (cd "$input"; sha256sum -c inputs.sha256)
 read -r did_hash conf_hash < <(python3 - "$root" "$out" <<'PY'
-import hashlib, os, re, subprocess, sys
+import base64, binascii, hashlib, os, re, subprocess, sys, zlib
 from pathlib import Path
 from urllib.parse import urlsplit
 root, out = map(Path, sys.argv[1:])
@@ -26,7 +26,18 @@ subprocess.run(['git', '-C', str(root), 'ls-files', '--error-unmatch', '--', str
 package, canister, endpoint = (os.environ[key] for key in ('JAVA_PACKAGE','CANISTER_ID','ICP_URL'))
 if not re.fullmatch(r'[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+', package):
     raise SystemExit('Choose a dotted, lowercase Java package name.')
-if not re.fullmatch(r'[a-z2-7]+(-[a-z2-7]+)+', canister):
+if not re.fullmatch(r'[a-z2-7]+(?:-[a-z2-7]+)*', canister):
+    raise SystemExit('Choose a valid canister principal.')
+encoded = canister.replace('-', '')
+if '-'.join(encoded[i:i + 5] for i in range(0, len(encoded), 5)) != canister:
+    raise SystemExit('Choose a valid canister principal.')
+try:
+    principal = base64.b32decode(encoded.upper() + '=' * (-len(encoded) % 8))
+except (binascii.Error, ValueError):
+    raise SystemExit('Choose a valid canister principal.')
+if (len(principal) < 4 or len(principal) > 33
+        or base64.b32encode(principal).decode('ascii').rstrip('=').lower() != encoded
+        or principal[:4] != zlib.crc32(principal[4:]).to_bytes(4, 'big')):
     raise SystemExit('Choose a valid canister principal.')
 url = urlsplit(endpoint)
 if any(ch.isspace() for ch in endpoint) or (url.scheme != 'https' and (url.scheme, url.hostname) != ('http', '127.0.0.1')) or not url.hostname or url.username or url.password or url.query or url.fragment:

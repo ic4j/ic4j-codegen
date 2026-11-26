@@ -30,6 +30,7 @@ dependencies {
         api 'javax.annotation:javax.annotation-api:1.3.2'
     } else {
         api 'org.ic4j:ic4j-reactnative:0.8.5'
+        runtimeOnly 'org.slf4j:slf4j-api:2.0.20'
         // The host app provides React Android; do not embed React/Android stubs.
         compileOnly files(providers.gradleProperty('androidApiJar').get())
         compileOnly files(providers.gradleProperty('reactAndroidJar').get())
