@@ -3,14 +3,14 @@ set -euo pipefail
 : "${RUNNER_TEMP:?}" "${CANDID_PATH:?}" "${JAVA_PACKAGE:?}" "${CANISTER_ID:?}" "${ICP_URL:?}"
 target="${1:?spring or reactnative}"
 [[ "$target" == spring || "$target" == reactnative ]]
-root="$(cd "$(dirname "$0")/.." && pwd)"
+root="$(cd "$(dirname "$0")/.." && pwd -P)"
 input="$RUNNER_TEMP/codegen-framework-inputs"
 out="$RUNNER_TEMP/codegen-${target}-module"
 mkdir "$out"
 mkdir -p "$out/src/main/java" "$out/consumer" "$out/maven-repository/org/ic4j"
 repo="$out/maven-repository"
 cp "$root/ci/framework-module/"*.gradle "$out/"
-cp "$input/sources.txt" "$out/"
+cp "$input/sources.txt" "$root/LICENSE" "$out/"
 (cd "$input"; sha256sum -c inputs.sha256)
 read -r did_hash conf_hash < <(python3 - "$root" "$out" <<'PY'
 import hashlib, os, re, subprocess, sys
@@ -91,13 +91,13 @@ cp "$dir/$name-$version.$artifact" "$out/"
 cp "$dir/$name-$version-sources.jar" "$out/"
 cat >"$out/README.md" <<DOC
 # $name
-Built from `$CANDID_PATH` at Codegen commit `$codegen`.
+Built from \`$CANDID_PATH\` at Codegen commit \`$codegen\`.
 Compile-only consumer check passed, using the published bundle binary.
-Endpoint: `$ICP_URL`, canister: `$CANISTER_ID` (anonymous identity).
+Endpoint: \`$ICP_URL\`, canister: \`$CANISTER_ID\` (anonymous identity).
 The defaults are placeholders, not a production deployment.
 
-Add `maven-repository/` as a Maven repository in your consuming build, before Maven Central.
-Use `implementation("org.ic4j.generated:$name:$version")`.
+Add \`maven-repository/\` as a Maven repository in your consuming build, before Maven Central.
+Use \`implementation("org.ic4j.generated:$name:$version")\`.
 The bundled repository supplies pinned IC4J dependencies; resolve other dependencies normally.
 $usage
 
