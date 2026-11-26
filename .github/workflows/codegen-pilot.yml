@@ -1,8 +1,25 @@
 name: IC4J Codegen dependency pilot
 on:
   workflow_dispatch:
+    inputs:
+      candid_path:
+        description: Tracked .did file in the selected branch
+        default: src/test/resources/LoanProvider.did
+        type: string
+      java_package:
+        description: Base Java package (target suffix is added)
+        default: org.ic4j.generated.loan
+        type: string
+      canister_id:
+        description: Canister principal embedded in generated code
+        default: aaaaa-aa
+        type: string
+      icp_url:
+        description: ICP URL embedded in generated code (not contacted)
+        default: http://127.0.0.1:4943
+        type: string
   push:
-    branches: [ci/codegen-source-pilot]
+    branches: [ci/codegen-source-pilot, ci/codegen-framework-packages]
 
 permissions:
   contents: read
@@ -83,3 +100,62 @@ jobs:
           path: |
             ${{ runner.temp }}/codegen-pilot-reports/
             codegen/build/test-results/test/TEST-*.xml
+
+      - name: Stage verified inputs for both packaging jobs
+        run: |
+          input="$RUNNER_TEMP/codegen-framework-inputs"
+          mkdir -p "$input/maven-repository"
+          cp -R "$RUNNER_TEMP/codegen-maven/org" "$input/maven-repository/"
+          cp codegen/build/libs/ic4j-codegen-with-dependencies-0.8.5.jar "$input/codegen.jar"
+          cp "$RUNNER_TEMP/codegen-pilot-reports/sources.txt" "$input/"
+          (cd "$input"; find . -type f -print0 | sort -z | xargs -0 sha256sum) > "$RUNNER_TEMP/codegen-framework-inputs.sha256"
+          mv "$RUNNER_TEMP/codegen-framework-inputs.sha256" "$input/inputs.sha256"
+      - name: Pass immutable inputs to packaging jobs
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: codegen-framework-inputs
+          retention-days: 1
+          if-no-files-found: error
+          path: ${{ runner.temp }}/codegen-framework-inputs/
+
+  packages:
+    name: Package ${{ matrix.target }}
+    needs: codegen
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [spring, reactnative]
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          path: codegen
+          persist-credentials: false
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: codegen-framework-inputs
+          path: ${{ runner.temp }}/codegen-framework-inputs
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5
+        with:
+          gradle-version: '8.14'
+          cache-disabled: true
+      - name: Build module and compile a consumer of the packaged binary
+        env:
+          TARGET: ${{ matrix.target }}
+          CANDID_PATH: ${{ inputs.candid_path || 'src/test/resources/LoanProvider.did' }}
+          JAVA_PACKAGE: ${{ format('{0}.{1}', inputs.java_package || 'org.ic4j.generated.loan', matrix.target) }}
+          CANISTER_ID: ${{ inputs.canister_id || 'aaaaa-aa' }}
+          ICP_URL: ${{ inputs.icp_url || 'http://127.0.0.1:4943' }}
+        run: bash codegen/ci/build-framework-module.sh "$TARGET"
+      - name: Upload standalone module bundle
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: ic4j-generated-${{ matrix.target }}
+          retention-days: 10
+          if-no-files-found: error
+          path: ${{ runner.temp }}/codegen-${{ matrix.target }}-module/

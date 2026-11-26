@@ -16,3 +16,28 @@ and RosettaNet execution exclusions remain unchanged.
 An explicit `[run codegen pilot]` push to `ci/codegen-source-pilot` validates
 the branch before merge. Manual dispatch is available once the workflow is on
 the default branch. No packages are published.
+
+## Generate standalone Spring and React Native modules
+
+The Actions run first builds and checks Codegen, then runs two independent
+packaging jobs in parallel. Each downloads the verified CLI and dependency
+inputs from the same run, generates from a tracked Candid file, and compiles a
+separate consumer against the packaged binary.
+
+- **ic4j-generated-spring:** library JAR, Spring Context 5.3.39.
+- **ic4j-generated-reactnative:** resource-free Android AAR, compiled against
+  React Android 0.71.11 and Android API 31. React Native itself comes from the
+  host app. This is not a JavaScript package or an APK.
+
+Each bundle includes generated sources, Maven coordinates, a folder-based
+Maven repository with the pinned IC4J dependencies, integration instructions,
+and checksums. Nothing is published to a remote package registry. The jobs do
+not start a Spring application, install an Android app, or contact ICP.
+
+Manually dispatch the workflow on a branch containing the Candid file.
+Set `candid_path`, `java_package`, `canister_id` and `icp_url` as needed.
+The default uses the checked-in `LoanProvider.did`, a dummy principal and
+a loopback URL. Both targets use anonymous identity in their annotations.
+Do not put confidential values in these inputs: the values are written into
+the artifacts. An explicit `[run codegen pilot]` push to
+`ci/codegen-framework-packages` validates the default example before merge.
